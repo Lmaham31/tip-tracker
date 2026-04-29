@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Tip Tracker"/>
+<meta name="theme-color" content="#111111"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icons/icon-192.png"/>
+<title>Tip Tracker</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    --bg:#ffffff;--bg2:#f5f5f5;--bg3:#eeeeee;
+    --text:#111111;--text2:#666666;--text3:#999999;
+    --border:rgba(0,0,0,0.12);--border2:rgba(0,0,0,0.2);
+    --green:#3B6D11;--green-bg:rgba(59,109,17,0.1);--green-border:rgba(59,109,17,0.25);
+    --red:#A32D2D;--red-bg:rgba(163,45,45,0.08);
+    --amber:#854F0B;
+    --radius:12px;--radius-sm:8px;
+    --safe-top:env(safe-area-inset-top,0px);
+    --safe-bottom:env(safe-area-inset-bottom,0px);
+  }
+  @media(prefers-color-scheme:dark){
+    :root{
+      --bg:#1a1a1a;--bg2:#242424;--bg3:#2e2e2e;
+      --text:#f0f0f0;--text2:#aaaaaa;--text3:#666666;
+      --border:rgba(255,255,255,0.1);--border2:rgba(255,255,255,0.18);
+      --green:#5ea832;--green-bg:rgba(94,168,50,0.12);--green-border:rgba(94,168,50,0.3);
+      --red:#e05555;--red-bg:rgba(224,85,85,0.1);
+      --amber:#c87d1a;
+    }
+  }
+  html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}
+  body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;}
+
+  /* HEADER */
+  .header{background:#111111;color:#fff;padding:calc(var(--safe-top) + 14px) 16px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+  .header-title{font-size:17px;font-weight:600;letter-spacing:0.01em;}
+  .header-dot{width:8px;height:8px;border-radius:50%;background:#4CAF50;}
+
+  /* TAB BAR */
+  .tab-bar{display:flex;background:var(--bg2);border-bottom:0.5px solid var(--border);flex-shrink:0;}
+  .tab{flex:1;padding:11px 4px;font-size:12px;font-weight:500;border:none;background:transparent;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;}
+  .tab.active{color:var(--text);border-bottom:2px solid var(--text);}
+
+  /* CONTENT */
+  .content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  .section{display:none;padding:14px 14px calc(var(--safe-bottom) + 20px);}
+  .section.active{display:block;}
+
+  /* CARDS */
+  .card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;}
+  .card-label{font-size:10px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;}
+
+  /* FORM */
+  .field{margin-bottom:10px;}
+  .field label{display:block;font-size:13px;color:var(--text2);margin-bottom:4px;}
+  .field input{width:100%;padding:10px 12px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);font-size:16px;font-family:inherit;background:var(--bg);color:var(--text);-webkit-appearance:none;}
+  .field input:focus{outline:none;border-color:var(--text2);}
+  .btn-save{width:100%;padding:14px;background:var(--text);color:var(--bg);border:none;border-radius:var(--radius-sm);font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:6px;-webkit-tap-highlight-color:transparent;}
+  .btn-save:active{opacity:.8;}
+
+  /* METRICS */
+  .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;}
+  .metric{background:var(--bg2);border-radius:var(--radius-sm);padding:10px;}
+  .metric-label{font-size:10px;color:var(--text2);margin-bottom:3px;}
+  .metric-value{font-size:16px;font-weight:600;}
+  .green{color:var(--green);}
+  .red-val{color:var(--red);}
+
+  /* HIGHLIGHT CARDS */
+  .hl-card{border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;}
+  .hl-best{background:var(--green-bg);border:0.5px solid var(--green-border);}
+  .hl-worst{background:var(--red-bg);border:0.5px solid rgba(163,45,45,0.2);}
+  .hl-badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px;margin-bottom:4px;display:inline-block;}
+  .badge-best{background:var(--green-bg);color:var(--green);}
+  .badge-worst{background:var(--red-bg);color:var(--red);}
+  .hl-date{font-size:11px;color:var(--text2);}
+  .hl-sub{font-size:11px;color:var(--text2);margin-top:2px;}
+  .hl-right{text-align:right;}
+  .hl-amount{font-size:19px;font-weight:600;}
+  .hl-detail{font-size:11px;color:var(--text2);}
+
+  /* CALENDAR */
+  .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .cal-nav{background:none;border:none;font-size:24px;cursor:pointer;color:var(--text);padding:4px 12px;-webkit-tap-highlight-color:transparent;}
+  .cal-month{font-size:16px;font-weight:600;}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+  .cal-dow{text-align:center;font-size:10px;font-weight:600;color:var(--text2);padding:4px 0;}
+  .cal-day{min-height:58px;border-radius:6px;padding:4px 3px;cursor:pointer;border:0.5px solid transparent;-webkit-tap-highlight-color:transparent;}
+  .cal-day.other-month{opacity:.3;}
+  .cal-day.has-shift{background:var(--green-bg);border-color:var(--green-border);}
+  .cal-day.today{border-color:var(--border2);}
+  .cal-day-num{font-size:11px;font-weight:500;color:var(--text2);}
+  .cal-day.has-shift .cal-day-num{color:var(--text);}
+  .cal-tip{font-size:10px;font-weight:600;color:var(--green);margin-top:2px;line-height:1.2;}
+  .cal-hr{font-size:9px;color:var(--green);opacity:.8;}
+  .cal-pct{font-size:9px;font-weight:600;margin-top:1px;}
+  .pct-great{color:var(--green);}
+  .pct-ok{color:var(--amber);}
+  .pct-low{color:var(--red);}
+
+  /* MODAL */
+  .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity .2s;}
+  .modal-overlay.open{opacity:1;pointer-events:all;}
+  .modal{background:var(--bg);border-radius:20px 20px 0 0;padding:20px 20px calc(var(--safe-bottom) + 20px);width:100%;max-width:480px;transform:translateY(20px);transition:transform .2s;}
+  .modal-overlay.open .modal{transform:translateY(0);}
+  .modal-handle{width:36px;height:4px;border-radius:2px;background:var(--border2);margin:0 auto 16px;}
+  .modal-title{font-size:18px;font-weight:600;margin-bottom:2px;}
+  .modal-date{font-size:13px;color:var(--text2);margin-bottom:16px;}
+  .modal-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid var(--border);font-size:15px;}
+  .modal-row.big{font-size:17px;font-weight:600;padding-top:12px;border-bottom:none;}
+  .modal-row.noborder{border-bottom:none;padding-top:4px;}
+  .pct-pill{display:inline-block;padding:2px 9px;border-radius:10px;font-size:13px;font-weight:600;}
+  .pct-pill.great{background:var(--green-bg);color:var(--green);}
+  .pct-pill.ok{background:rgba(133,79,11,0.1);color:var(--amber);}
+  .pct-pill.low{background:var(--red-bg);color:var(--red);}
+  .modal-close{width:100%;padding:13px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);background:transparent;color:var(--text);font-size:15px;cursor:pointer;font-family:inherit;margin-top:16px;}
+  .modal-del{width:100%;padding:11px;border:none;background:transparent;color:var(--red);font-size:14px;cursor:pointer;font-family:inherit;margin-top:6px;}
+
+  /* SUMMARY */
+  .period-row{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
+  .period-btn{padding:6px 13px;font-size:12px;border:0.5px solid var(--border2);border-radius:20px;background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;}
+  .period-btn.active{background:var(--text);color:var(--bg);border-color:var(--text);}
+  .sum-row{display:flex;justify-content:space-between;padding:7px 0;font-size:14px;}
+  .sum-row.total{font-weight:600;font-size:15px;padding-top:10px;border-top:0.5px solid var(--border2);margin-top:4px;}
+  .section-title{font-size:11px;font-weight:600;color:var(--text2);margin:14px 0 7px;text-transform:uppercase;letter-spacing:.07em;}
+  .chart-toggle{display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap;}
+  .chart-btn{padding:5px 11px;font-size:11px;border:0.5px solid var(--border2);border-radius:20px;background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;}
+  .chart-btn.active{background:var(--text);color:var(--bg);border-color:var(--text);}
+  .legend-row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:8px;}
+  .legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);}
+  .legend-swatch{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+  .preview-box{background:var(--bg2);border-radius:var(--radius-sm);padding:10px;margin-bottom:10px;display:none;}
+  .preview-row{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;}
+  .pct-legend{display:flex;gap:12px;font-size:10px;margin-top:10px;flex-wrap:wrap;}
+  .pct-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:3px;vertical-align:middle;}
+  .empty-state{text-align:center;padding:32px 16px;color:var(--text2);font-size:14px;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-title">Tip Tracker</div>
+  <div class="header-dot"></div>
+</div>
+
+<div class="tab-bar">
+  <button class="tab active" onclick="switchTab('cal')">Calendar</button>
+  <button class="tab" onclick="switchTab('log')">Log Shift</button>
+  <button class="tab" onclick="switchTab('summary')">Summary</button>
+</div>
+
+<div class="content">
+
+  <!-- CALENDAR -->
+  <div class="section active" id="tab-cal">
+    <div class="cal-header">
+      <button class="cal-nav" onclick="changeMonth(-1)">‹</button>
+      <span class="cal-month" id="cal-title"></span>
+      <button class="cal-nav" onclick="changeMonth(1)">›</button>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <div class="pct-legend">
+      <span><span class="pct-dot" style="background:var(--green);"></span><span style="color:var(--text2)">20%+ great</span></span>
+      <span><span class="pct-dot" style="background:var(--amber);"></span><span style="color:var(--text2)">15–20% ok</span></span>
+      <span><span class="pct-dot" style="background:var(--red);"></span><span style="color:var(--text2)">under 15% low</span></span>
+    </div>
+  </div>
+
+  <!-- LOG SHIFT -->
+  <div class="section" id="tab-log">
+    <div class="card">
+      <div class="card-label">New shift</div>
+      <div class="field"><label>Date</label><input type="date" id="s-date"/></div>
+      <div class="field"><label>Hours worked</label><input type="number" id="s-hours" placeholder="0.0" step="0.25" min="0" inputmode="decimal" oninput="livePreview()"/></div>
+      <div class="field"><label>Total sales / ring ($)</label><input type="number" id="s-sales" placeholder="0.00" step="0.01" min="0" inputmode="decimal" oninput="livePreview()"/></div>
+      <div class="field"><label>Cash tips ($)</label><input type="number" id="s-cash" placeholder="0.00" step="0.01" min="0" inputmode="decimal" oninput="livePreview()"/></div>
+      <div class="field"><label>Credit card tips ($)</label><input type="number" id="s-credit" placeholder="0.00" step="0.01" min="0" inputmode="decimal" oninput="livePreview()"/></div>
+      <div class="field"><label>Tip-out ($)</label><input type="number" id="s-tipout" placeholder="0.00" step="0.01" min="0" inputmode="decimal" oninput="livePreview()"/></div>
+      <div class="preview-box" id="log-preview">
+        <div class="preview-row"><span style="color:var(--text2)">Gross tips</span><span id="pv-gross">—</span></div>
+        <div class="preview-row"><span style="color:var(--text2)">Tip %</span><span id="pv-pct" style="font-weight:600">—</span></div>
+        <div class="preview-row"><span style="color:var(--text2)">Net take-home</span><span id="pv-net" style="font-weight:600">—</span></div>
+        <div class="preview-row"><span style="color:var(--text2)">Per hour</span><span id="pv-hr">—</span></div>
+      </div>
+      <button class="btn-save" onclick="logShift()">Save shift</button>
+    </div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="section" id="tab-summary">
+    <div class="period-row">
+      <button class="period-btn active" onclick="setPeriod('week',this)">Week</button>
+      <button class="period-btn" onclick="setPeriod('month',this)">Month</button>
+      <button class="period-btn" onclick="setPeriod('year',this)">Year</button>
+      <button class="period-btn" onclick="setPeriod('all',this)">All time</button>
+    </div>
+    <div class="g3">
+      <div class="metric"><div class="metric-label">Take-home</div><div class="metric-value green" id="sm-net">$0</div></div>
+      <div class="metric"><div class="metric-label">Avg/shift</div><div class="metric-value" id="sm-avg">—</div></div>
+      <div class="metric"><div class="metric-label">Avg/hr</div><div class="metric-value" id="sm-hr">—</div></div>
+    </div>
+    <div class="g3">
+      <div class="metric"><div class="metric-label">Avg tip %</div><div class="metric-value" id="sm-pct">—</div></div>
+      <div class="metric"><div class="metric-label">Total sales</div><div class="metric-value" id="sm-sales">—</div></div>
+      <div class="metric"><div class="metric-label">Shifts</div><div class="metric-value" id="sm-shifts">0</div></div>
+    </div>
+
+    <div class="section-title">Best & worst</div>
+    <div id="best-worst-block"></div>
+
+    <div class="section-title" style="margin-top:16px;">Earnings charts</div>
+    <div class="chart-toggle">
+      <button class="chart-btn active" onclick="setChart('dow',this)">By day of week</button>
+      <button class="chart-btn" onclick="setChart('week',this)">Week vs week</button>
+      <button class="chart-btn" onclick="setChart('month',this)">Month vs month</button>
+    </div>
+    <div id="legend-row" class="legend-row"></div>
+    <div style="position:relative;width:100%;height:190px;">
+      <canvas id="mainChart" role="img" aria-label="Earnings bar chart">Earnings chart.</canvas>
+    </div>
+
+    <div class="card" style="margin-top:14px;">
+      <div class="card-label">Full breakdown</div>
+      <div class="sum-row"><span style="color:var(--text2)">Total cash tips</span><span id="sm-cash">$0.00</span></div>
+      <div class="sum-row"><span style="color:var(--text2)">Total credit tips</span><span id="sm-credit">$0.00</span></div>
+      <div class="sum-row"><span style="color:var(--text2)">Gross tips</span><span id="sm-gross">$0.00</span></div>
+      <div class="sum-row"><span style="color:var(--text2)">Tip-out paid</span><span id="sm-tipout">$0.00</span></div>
+      <div class="sum-row"><span style="color:var(--text2)">Total sales</span><span id="sm-sales2">—</span></div>
+      <div class="sum-row"><span style="color:var(--text2)">Hours worked</span><span id="sm-hours">0h</span></div>
+      <div class="sum-row total"><span>Net take-home</span><span id="sm-net2">$0.00</span></div>
+    </div>
+  </div>
+
+</div><!-- end content -->
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModalBg(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="m-title">—</div>
+    <div class="modal-date" id="m-date">—</div>
+    <div class="modal-row"><span style="color:var(--text2)">Cash tips</span><span id="m-cash">—</span></div>
+    <div class="modal-row"><span style="color:var(--text2)">Credit tips</span><span id="m-credit">—</span></div>
+    <div class="modal-row"><span style="color:var(--text2)">Gross tips</span><span id="m-gross">—</span></div>
+    <div class="modal-row"><span style="color:var(--text2)">Tip-out</span><span id="m-tipout">—</span></div>
+    <div class="modal-row" id="m-sales-row"><span style="color:var(--text2)">Sales / ring</span><span id="m-sales">—</span></div>
+    <div class="modal-row" id="m-pct-row"><span style="color:var(--text2)">Tip %</span><span id="m-pct">—</span></div>
+    <div class="modal-row"><span style="color:var(--text2)">Hours worked</span><span id="m-hours">—</span></div>
+    <div class="modal-row big"><span>Net take-home</span><span id="m-net" class="green">—</span></div>
+    <div class="modal-row noborder"><span style="color:var(--text2)">Per hour</span><span id="m-hr">—</span></div>
+    <button class="modal-close" onclick="document.getElementById('modal').classList.remove('open')">Close</button>
+    <button class="modal-del" onclick="deleteFromModal()">Delete this shift</button>
+  </div>
+</div>
+
+<script>
+const KEY='tiptracker_v2';
+let shifts=[],calYear,calMonth,mainChart=null,currentPeriod='week',currentChart='dow',modalShiftId=null;
+const now=new Date();
+calYear=now.getFullYear();calMonth=now.getMonth();
+document.getElementById('s-date').value=now.toISOString().slice(0,10);
+
+// STORAGE - uses localStorage for PWA
+function loadData(){
+  try{const r=localStorage.getItem(KEY);if(r)shifts=JSON.parse(r);}catch(e){shifts=[];}
+  renderCal();renderSummary();
+}
+function saveData(){try{localStorage.setItem(KEY,JSON.stringify(shifts));}catch(e){}}
+
+const fmt2=n=>'$'+n.toFixed(2);
+const fmtk=n=>n>=1000?'$'+(n/1000).toFixed(1)+'k':'$'+Math.round(n);
+const netOf=s=>s.cash+s.credit-s.tipout;
+const tipPct=s=>s.sales>0?(s.cash+s.credit)/s.sales*100:null;
+const pctClass=p=>p===null?'':p>=20?'great':p>=15?'ok':'low';
+const fmtDate=ds=>{const d=new Date(ds+'T12:00:00');return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});};
+const getShiftForDate=ds=>shifts.find(s=>s.date===ds)||null;
+
+function weekKey(ds){const d=new Date(ds+'T12:00:00');const day=d.getDay();const mon=new Date(d);mon.setDate(d.getDate()-(day===0?6:day-1));return mon.toISOString().slice(0,10);}
+function weekLabel(ds){const d=new Date(ds+'T12:00:00');const day=d.getDay();const mon=new Date(d);mon.setDate(d.getDate()-(day===0?6:day-1));return mon.toLocaleDateString('en-US',{month:'short',day:'numeric'});}
+function monthKey(ds){return ds.slice(0,7);}
+function monthLabel(k){const[y,m]=k.split('-');return new Date(+y,+m-1,1).toLocaleDateString('en-US',{month:'short',year:'2-digit'});}
+
+function renderCal(){
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cal-title').textContent=months[calMonth]+' '+calYear;
+  const grid=document.getElementById('cal-grid');grid.innerHTML='';
+  ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d=>{const el=document.createElement('div');el.className='cal-dow';el.textContent=d;grid.appendChild(el);});
+  const firstDay=new Date(calYear,calMonth,1).getDay();
+  const dim=new Date(calYear,calMonth+1,0).getDate();
+  const diPrev=new Date(calYear,calMonth,0).getDate();
+  const todayStr=now.toISOString().slice(0,10);
+  for(let i=0;i<42;i++){
+    const el=document.createElement('div');el.className='cal-day';
+    let dateStr,dayNum;
+    if(i<firstDay){dayNum=diPrev-firstDay+i+1;dateStr=new Date(calYear,calMonth-1,dayNum).toISOString().slice(0,10);el.classList.add('other-month');}
+    else if(i>=firstDay+dim){dayNum=i-firstDay-dim+1;dateStr=new Date(calYear,calMonth+1,dayNum).toISOString().slice(0,10);el.classList.add('other-month');}
+    else{dayNum=i-firstDay+1;dateStr=calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(dayNum).padStart(2,'0');}
+    if(dateStr===todayStr)el.classList.add('today');
+    const shift=getShiftForDate(dateStr);
+    if(shift)el.classList.add('has-shift');
+    const numEl=document.createElement('div');numEl.className='cal-day-num';numEl.textContent=dayNum;el.appendChild(numEl);
+    if(shift){
+      const n=netOf(shift);const pct=tipPct(shift);
+      const tipEl=document.createElement('div');tipEl.className='cal-tip';tipEl.textContent=fmt2(n);el.appendChild(tipEl);
+      if(shift.hours>0){const hrEl=document.createElement('div');hrEl.className='cal-hr';hrEl.textContent='$'+(n/shift.hours).toFixed(0)+'/hr';el.appendChild(hrEl);}
+      if(pct!==null){const pEl=document.createElement('div');pEl.className='cal-pct pct-'+pctClass(pct);pEl.textContent=pct.toFixed(0)+'%';el.appendChild(pEl);}
+    }
+    el.addEventListener('click',()=>{if(shift)openModal(shift);else openLogForDate(dateStr);});
+    grid.appendChild(el);
+  }
+}
+
+function changeMonth(dir){calMonth+=dir;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}renderCal();}
+
+function pctPill(pct){if(pct===null)return '<span style="color:var(--text2)">—</span>';const cls=pctClass(pct);return`<span class="pct-pill ${cls}">${pct.toFixed(1)}%</span>`;}
+
+function openModal(shift){
+  modalShiftId=shift.id;const n=netOf(shift);const pct=tipPct(shift);
+  const d=new Date(shift.date+'T12:00:00');
+  document.getElementById('m-title').textContent=fmt2(n)+' take-home';
+  document.getElementById('m-date').textContent=d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  document.getElementById('m-cash').textContent=fmt2(shift.cash);
+  document.getElementById('m-credit').textContent=fmt2(shift.credit);
+  document.getElementById('m-gross').textContent=fmt2(shift.cash+shift.credit);
+  document.getElementById('m-tipout').textContent=shift.tipout>0?'-'+fmt2(shift.tipout):'$0.00';
+  document.getElementById('m-sales').textContent=shift.sales>0?fmt2(shift.sales):'—';
+  document.getElementById('m-pct').innerHTML=pctPill(pct);
+  document.getElementById('m-pct-row').style.display=shift.sales>0?'flex':'none';
+  document.getElementById('m-sales-row').style.display=shift.sales>0?'flex':'none';
+  document.getElementById('m-hours').textContent=shift.hours>0?shift.hours+'h':'—';
+  document.getElementById('m-net').textContent=fmt2(n);
+  document.getElementById('m-hr').textContent=shift.hours>0?'$'+(n/shift.hours).toFixed(2)+'/hr':'—';
+  document.getElementById('modal').classList.add('open');
+}
+function closeModalBg(e){if(e.target===document.getElementById('modal'))document.getElementById('modal').classList.remove('open');}
+function deleteFromModal(){if(!modalShiftId)return;shifts=shifts.filter(s=>s.id!==modalShiftId);saveData();renderCal();renderSummary();document.getElementById('modal').classList.remove('open');}
+function openLogForDate(ds){document.getElementById('s-date').value=ds;switchTab('log');}
+
+function livePreview(){
+  const cash=parseFloat(document.getElementById('s-cash').value)||0;
+  const credit=parseFloat(document.getElementById('s-credit').value)||0;
+  const tipout=parseFloat(document.getElementById('s-tipout').value)||0;
+  const hours=parseFloat(document.getElementById('s-hours').value)||0;
+  const sales=parseFloat(document.getElementById('s-sales').value)||0;
+  const gross=cash+credit,n=gross-tipout,pct=sales>0?gross/sales*100:null;
+  const box=document.getElementById('log-preview');
+  if(gross>0||tipout>0){
+    box.style.display='block';
+    document.getElementById('pv-gross').textContent=fmt2(gross);
+    const pctEl=document.getElementById('pv-pct');
+    if(pct!==null){pctEl.textContent=pct.toFixed(1)+'%';pctEl.style.color=pct>=20?'var(--green)':pct>=15?'var(--amber)':'var(--red)';}
+    else{pctEl.textContent='—';pctEl.style.color='';}
+    document.getElementById('pv-net').textContent=fmt2(n);
+    document.getElementById('pv-hr').textContent=hours>0?'$'+(n/hours).toFixed(2)+'/hr':'—';
+  } else box.style.display='none';
+}
+
+function logShift(){
+  const date=document.getElementById('s-date').value||now.toISOString().slice(0,10);
+  const hours=parseFloat(document.getElementById('s-hours').value)||0;
+  const sales=parseFloat(document.getElementById('s-sales').value)||0;
+  const cash=parseFloat(document.getElementById('s-cash').value)||0;
+  const credit=parseFloat(document.getElementById('s-credit').value)||0;
+  const tipout=parseFloat(document.getElementById('s-tipout').value)||0;
+  if(cash+credit===0){alert('Enter at least one tip amount.');return;}
+  const idx=shifts.findIndex(s=>s.date===date);
+  const entry={id:Date.now(),date,hours,sales,cash,credit,tipout};
+  if(idx>=0)shifts[idx]=entry;else shifts.push(entry);
+  shifts.sort((a,b)=>b.date.localeCompare(a.date));
+  saveData();
+  ['s-hours','s-sales','s-cash','s-credit','s-tipout'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('log-preview').style.display='none';
+  document.getElementById('s-date').value=now.toISOString().slice(0,10);
+  calMonth=new Date(date+'T12:00:00').getMonth();calYear=new Date(date+'T12:00:00').getFullYear();
+  renderCal();renderSummary();switchTab('cal');
+}
+
+function getFiltered(period){
+  const n=new Date();
+  return shifts.filter(s=>{
+    const d=new Date(s.date+'T12:00:00');
+    if(period==='week'){const day=n.getDay();const mon=new Date(n);mon.setDate(n.getDate()-(day===0?6:day-1));mon.setHours(0,0,0,0);return d>=mon;}
+    if(period==='month')return d.getMonth()===n.getMonth()&&d.getFullYear()===n.getFullYear();
+    if(period==='year')return d.getFullYear()===n.getFullYear();
+    return true;
+  });
+}
+
+function setPeriod(p,btn){currentPeriod=p;document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderSummary();}
+function setChart(c,btn){currentChart=c;document.querySelectorAll('.chart-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderCharts();}
+
+function renderBestWorst(data){
+  const el=document.getElementById('best-worst-block');
+  if(data.length===0){el.innerHTML='<div class="empty-state">No shifts in this period yet</div>';return;}
+  const sorted=[...data].sort((a,b)=>netOf(b)-netOf(a));
+  const best=sorted[0],worst=sorted[sorted.length-1];
+  const hlCard=(shift,type)=>{
+    const n=netOf(shift);const pct=tipPct(shift);const isBest=type==='best';
+    const hr=shift.hours>0?'$'+(n/shift.hours).toFixed(2)+'/hr':'—';
+    const pctStr=pct!==null?' · '+pct.toFixed(0)+'%':'';
+    return`<div class="hl-card ${isBest?'hl-best':'hl-worst'}">
+      <div><span class="hl-badge ${isBest?'badge-best':'badge-worst'}">${isBest?'Best':'Worst'} shift</span>
+      <div class="hl-date">${fmtDate(shift.date)}</div>
+      <div class="hl-sub">${shift.hours>0?shift.hours+'h · ':''}${hr}${pctStr}</div></div>
+      <div class="hl-right"><div class="hl-amount ${isBest?'green':'red-val'}">${fmt2(n)}</div>
+      <div class="hl-detail">${shift.sales>0?fmt2(shift.sales)+' sales':fmt2(shift.cash)+' cash · '+fmt2(shift.credit)+' CC'}</div></div>
+    </div>`;
+  };
+  el.innerHTML=hlCard(best,'best')+(data.length>1?hlCard(worst,'worst'):'');
+}
+
+function buildDOW(){
+  const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const buckets=Array(7).fill(null).map(()=>[]);
+  shifts.forEach(s=>{const d=new Date(s.date+'T12:00:00');buckets[d.getDay()].push(netOf(s));});
+  const avgs=buckets.map(b=>b.length>0?parseFloat((b.reduce((a,v)=>a+v,0)/b.length).toFixed(2)):0);
+  const counts=buckets.map(b=>b.length);
+  const maxAvg=Math.max(...avgs.filter((_,i)=>counts[i]>0));
+  document.getElementById('legend-row').innerHTML=`<div class="legend-item"><span class="legend-swatch" style="background:var(--green);opacity:.7;"></span>Avg earnings — all time by day</div>`;
+  return{labels:days,datasets:[{label:'Avg take-home',data:avgs,backgroundColor:avgs.map((v,i)=>counts[i]===0?'rgba(128,128,128,0.15)':v===maxAvg?'rgba(59,109,17,0.9)':'rgba(59,109,17,0.5)'),borderRadius:4,borderSkipped:false}]};
+}
+
+function buildWeekVsWeek(){
+  const weekMap={};
+  shifts.forEach(s=>{const k=weekKey(s.date);if(!weekMap[k])weekMap[k]={total:0,label:weekLabel(s.date)};weekMap[k].total+=netOf(s);});
+  const keys=Object.keys(weekMap).sort().slice(-6);
+  const vals=keys.map(k=>parseFloat(weekMap[k].total.toFixed(2)));
+  const opacities=[.3,.4,.5,.6,.75,.9];
+  document.getElementById('legend-row').innerHTML=`<div class="legend-item"><span class="legend-swatch" style="background:var(--green);opacity:.9;"></span>Most recent</div><div class="legend-item"><span class="legend-swatch" style="background:var(--green);opacity:.3;"></span>Older</div>`;
+  return{labels:keys.map(k=>weekMap[k].label),datasets:[{label:'Weekly earnings',data:vals,backgroundColor:keys.map((_,i)=>`rgba(59,109,17,${opacities[Math.min(i,opacities.length-1)]})`),borderRadius:4,borderSkipped:false}]};
+}
+
+function buildMonthVsMonth(){
+  const monthMap={};
+  shifts.forEach(s=>{const k=monthKey(s.date);if(!monthMap[k])monthMap[k]=0;monthMap[k]+=netOf(s);});
+  const keys=Object.keys(monthMap).sort().slice(-6);
+  const vals=keys.map(k=>parseFloat(monthMap[k].toFixed(2)));
+  const opacities=[.3,.4,.5,.6,.75,.9];
+  document.getElementById('legend-row').innerHTML=`<div class="legend-item"><span class="legend-swatch" style="background:var(--green);opacity:.9;"></span>Most recent</div><div class="legend-item"><span class="legend-swatch" style="background:var(--green);opacity:.3;"></span>Older</div>`;
+  return{labels:keys.map(k=>monthLabel(k)),datasets:[{label:'Monthly earnings',data:vals,backgroundColor:keys.map((_,i)=>`rgba(59,109,17,${opacities[Math.min(i,opacities.length-1)]})`),borderRadius:4,borderSkipped:false}]};
+}
+
+function renderCharts(){
+  const ctx=document.getElementById('mainChart').getContext('2d');
+  if(mainChart){mainChart.destroy();mainChart=null;}
+  let chartData;
+  if(currentChart==='dow')chartData=buildDOW();
+  else if(currentChart==='week')chartData=buildWeekVsWeek();
+  else chartData=buildMonthVsMonth();
+  if(!chartData.labels.length){document.getElementById('legend-row').innerHTML='<div style="font-size:12px;color:var(--text2);">Log more shifts to see charts</div>';return;}
+  mainChart=new Chart(ctx,{type:'bar',data:chartData,options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'$'+c.parsed.y.toFixed(2)}}},scales:{x:{grid:{display:false},ticks:{font:{size:10},maxRotation:0}},y:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{callback:v=>'$'+v,font:{size:10}},beginAtZero:true}}}});
+}
+
+function renderSummary(){
+  const data=getFiltered(currentPeriod);
+  const gross=data.reduce((a,s)=>a+s.cash+s.credit,0);
+  const tipout=data.reduce((a,s)=>a+s.tipout,0);
+  const cash=data.reduce((a,s)=>a+s.cash,0);
+  const credit=data.reduce((a,s)=>a+s.credit,0);
+  const hours=data.reduce((a,s)=>a+s.hours,0);
+  const sales=data.reduce((a,s)=>a+(s.sales||0),0);
+  const n=gross-tipout;
+  const avg=data.length>0?n/data.length:0;
+  const withSales=data.filter(s=>s.sales>0);
+  const avgPct=withSales.length>0?withSales.reduce((a,s)=>a+(s.cash+s.credit)/s.sales*100,0)/withSales.length:null;
+  const pctEl=document.getElementById('sm-pct');
+  if(avgPct!==null){pctEl.textContent=avgPct.toFixed(1)+'%';pctEl.className='metric-value pct-'+pctClass(avgPct);}
+  else{pctEl.textContent='—';pctEl.className='metric-value';}
+  document.getElementById('sm-net').textContent=fmtk(n);
+  document.getElementById('sm-avg').textContent=data.length>0?'$'+avg.toFixed(0):'—';
+  document.getElementById('sm-hr').textContent=hours>0?'$'+(n/hours).toFixed(2):'—';
+  document.getElementById('sm-shifts').textContent=data.length;
+  document.getElementById('sm-sales').textContent=sales>0?fmtk(sales):'—';
+  document.getElementById('sm-cash').textContent=fmt2(cash);
+  document.getElementById('sm-credit').textContent=fmt2(credit);
+  document.getElementById('sm-gross').textContent=fmt2(gross);
+  document.getElementById('sm-tipout').textContent=fmt2(tipout);
+  document.getElementById('sm-sales2').textContent=sales>0?fmt2(sales):'—';
+  document.getElementById('sm-hours').textContent=hours.toFixed(1)+'h';
+  document.getElementById('sm-net2').textContent=fmt2(n);
+  renderBestWorst(data);
+  renderCharts();
+}
+
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['cal','log','summary'][i]===name));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if(name==='summary')renderSummary();
+}
+
+// SERVICE WORKER
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+
+loadData();
+</script>
+</body>
+</html>
