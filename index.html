@@ -581,7 +581,7 @@ async function syncToSheets(entry) {
  
 // SCHEDULE SYNC
 const ICS_URL = 'https://app.7shifts.com/calendar/schedule/129910/38a39b4d8d18245e6e4a67060c5069cd.ics?u=10914204';
-const ICS_PROXY = 'https://api.allorigins.win/get?url=';
+const ICS_PROXY = 'https://corsproxy.io/?';
 let scheduledShifts = [];
  
 function parseICS(text) {
@@ -629,8 +629,8 @@ async function syncSchedule() {
   document.getElementById('sync-status').textContent = 'Syncing...';
   try {
     const res = await fetch(ICS_PROXY + encodeURIComponent(ICS_URL));
-    const data = await res.json();
-    const events = parseICS(data.contents);
+    const text = await res.text();
+    const events = parseICS(text);
     const nowTime = new Date();
     scheduledShifts = events
       .filter(e => e.start && e.start >= new Date(nowTime.setHours(0,0,0,0)))
@@ -711,3 +711,4 @@ loadData();
 </script>
 </body>
 </html>
+ 
