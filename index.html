@@ -374,6 +374,7 @@ function logShift(){
   if(idx>=0)shifts[idx]=entry;else shifts.push(entry);
   shifts.sort((a,b)=>b.date.localeCompare(a.date));
   saveData();
+  syncToSheets(entry);
   ['s-hours','s-sales','s-cash','s-credit','s-tipout'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('log-preview').style.display='none';
   document.getElementById('s-date').value=now.toISOString().slice(0,10);
@@ -493,6 +494,21 @@ function switchTab(name){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
   if(name==='summary')renderSummary();
+}
+
+const SHEETS_URL = "https://script.google.com/macros/s/AKfycbxAam-bRgC5Hd2WjyXVoV7h5ICGZfB8dkg1Ji5Q6K4xDNoi3S4xUNeVaD2KX_TG0NDl/exec";
+
+async function syncToSheets(entry) {
+  try {
+    await fetch(SHEETS_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(entry)
+    });
+  } catch(e) {
+    console.log("Sheets sync failed:", e);
+  }
 }
 
 // SERVICE WORKER
