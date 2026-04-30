@@ -140,6 +140,16 @@
   .pct-legend{display:flex;gap:12px;font-size:10px;margin-top:10px;flex-wrap:wrap;}
   .pct-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:3px;vertical-align:middle;}
   .empty-state{text-align:center;padding:32px 16px;color:var(--text2);font-size:14px;}
+  .cal-day.scheduled{background:rgba(100,100,200,0.08);border-color:rgba(100,100,200,0.25);}
+  .cal-scheduled{font-size:9px;color:#5555cc;font-weight:500;margin-top:1px;}
+  .sync-bar{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
+  .sync-status{font-size:12px;color:var(--text2);}
+  .sync-btn{padding:5px 12px;font-size:12px;background:var(--text);color:var(--bg);border:none;border-radius:20px;cursor:pointer;font-family:inherit;}
+  .sched-item{padding:10px 0;border-bottom:0.5px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+  .sched-item:last-child{border-bottom:none;}
+  .sched-date{font-size:13px;font-weight:500;}
+  .sched-time{font-size:12px;color:var(--text2);margin-top:2px;}
+  .sched-badge{font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(100,100,200,0.12);color:#5555cc;font-weight:500;}
 </style>
 </head>
 <body>
@@ -192,6 +202,21 @@
         <div class="preview-row"><span style="color:var(--text2)">Per hour</span><span id="pv-hr">—</span></div>
       </div>
       <button class="btn-save" onclick="logShift()">Save shift</button>
+    </div>
+  </div>
+ 
+  <!-- SCHEDULE -->
+  <div class="section" id="tab-schedule">
+    <div class="sync-bar">
+      <div>
+        <div style="font-size:13px;font-weight:500;">7shifts Schedule</div>
+        <div class="sync-status" id="sync-status">Tap sync to load your shifts</div>
+      </div>
+      <button class="sync-btn" onclick="syncSchedule()">Sync</button>
+    </div>
+    <div class="card">
+      <div class="card-label">Upcoming shifts</div>
+      <div id="schedule-list"><div class="empty-state">No scheduled shifts loaded yet — tap Sync</div></div>
     </div>
   </div>
  
@@ -309,7 +334,9 @@ function renderCal(){
     else{dayNum=i-firstDay+1;dateStr=calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(dayNum).padStart(2,'0');}
     if(dateStr===todayStr)el.classList.add('today');
     const shift=getShiftForDate(dateStr);
+    const scheduled=getScheduledForDate(dateStr);
     if(shift)el.classList.add('has-shift');
+    else if(scheduled.length>0)el.classList.add('scheduled');
     const numEl=document.createElement('div');numEl.className='cal-day-num';numEl.textContent=dayNum;el.appendChild(numEl);
     if(shift){
       const n=netOf(shift);const pct=tipPct(shift);
@@ -317,7 +344,20 @@ function renderCal(){
       if(shift.hours>0){const hrEl=document.createElement('div');hrEl.className='cal-hr';hrEl.textContent='$'+(n/shift.hours).toFixed(0)+'/hr';el.appendChild(hrEl);}
       if(pct!==null){const pEl=document.createElement('div');pEl.className='cal-pct pct-'+pctClass(pct);pEl.textContent=pct.toFixed(0)+'%';el.appendChild(pEl);}
     }
-    el.addEventListener('click',()=>{if(shift)openModal(shift);else openLogForDate(dateStr);});
+    if(!shift && scheduled.length>0){
+      const s=scheduled[0];
+      const scEl=document.createElement('div');scEl.className='cal-scheduled';
+      scEl.textContent=fmtTime(s.start)+(s.end?' - '+fmtTime(s.end):'');
+      el.appendChild(scEl);
+      const hrsEl=document.createElement('div');hrsEl.className='cal-scheduled';
+      hrsEl.textContent=hoursFromShift(s)+'h';
+      el.appendChild(hrsEl);
+    }
+    el.addEventListener('click',()=>{
+      if(shift)openModal(shift);
+      else if(scheduled.length>0)prefillShift(dateStr, hoursFromShift(scheduled[0]));
+      else openLogForDate(dateStr);
+    });
     grid.appendChild(el);
   }
 }
@@ -516,10 +556,11 @@ function renderSummary(){
 }
  
 function switchTab(name){
-  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['cal','log','summary'][i]===name));
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['cal','log','schedule','summary'][i]===name));
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
   if(name==='summary')renderSummary();
+  if(name==='schedule')renderSchedule();
 }
  
 const SHEETS_URL = "https://script.google.com/macros/s/AKfycbxAam-bRgC5Hd2WjyXVoV7h5ICGZfB8dkg1Ji5Q6K4xDNoi3S4xUNeVaD2KX_TG0NDl/exec";
@@ -537,13 +578,135 @@ async function syncToSheets(entry) {
   }
 }
  
+// SCHEDULE SYNC
+const ICS_URL = 'https://app.7shifts.com/calendar/schedule/129910/38a39b4d8d18245e6e4a67060c5069cd.ics?u=10914204';
+const ICS_PROXY = 'https://api.allorigins.win/get?url=';
+let scheduledShifts = [];
+ 
+function parseICS(text) {
+  const events = [];
+  const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+  let current = null;
+  for (let line of lines) {
+    if (line === 'BEGIN:VEVENT') { current = {}; }
+    else if (line === 'END:VEVENT' && current) { events.push(current); current = null; }
+    else if (current) {
+      if (line.startsWith('DTSTART')) {
+        const val = line.split(':')[1];
+        current.start = parseICSDate(val);
+      } else if (line.startsWith('DTEND')) {
+        const val = line.split(':')[1];
+        current.end = parseICSDate(val);
+      } else if (line.startsWith('SUMMARY')) {
+        current.title = line.split(':').slice(1).join(':').trim();
+      }
+    }
+  }
+  return events;
+}
+ 
+function parseICSDate(val) {
+  if (!val) return null;
+  val = val.trim();
+  // Format: 20250430T180000Z or 20250430T180000
+  const y = val.slice(0,4), mo = val.slice(4,6), d = val.slice(6,8);
+  const h = val.slice(9,11)||'00', mi = val.slice(11,13)||'00';
+  return new Date(`${y}-${mo}-${d}T${h}:${mi}:00${val.endsWith('Z')?'Z':''}`);
+}
+ 
+function hoursFromShift(s) {
+  if (!s.start || !s.end) return 0;
+  return parseFloat(((s.end - s.start) / 3600000).toFixed(2));
+}
+ 
+function fmtTime(d) {
+  if (!d) return '—';
+  return d.toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit', hour12:true});
+}
+ 
+async function syncSchedule() {
+  document.getElementById('sync-status').textContent = 'Syncing...';
+  try {
+    const res = await fetch(ICS_PROXY + encodeURIComponent(ICS_URL));
+    const data = await res.json();
+    const events = parseICS(data.contents);
+    const nowTime = new Date();
+    scheduledShifts = events
+      .filter(e => e.start && e.start >= new Date(nowTime.setHours(0,0,0,0)))
+      .sort((a,b) => a.start - b.start)
+      .slice(0, 30);
+    localStorage.setItem('tiptracker_schedule', JSON.stringify(scheduledShifts.map(s => ({
+      title: s.title,
+      start: s.start?.toISOString(),
+      end: s.end?.toISOString()
+    }))));
+    renderSchedule();
+    renderCal();
+    document.getElementById('sync-status').textContent = `Synced — ${scheduledShifts.length} upcoming shifts`;
+  } catch(e) {
+    document.getElementById('sync-status').textContent = 'Sync failed — check connection';
+  }
+}
+ 
+function loadSchedule() {
+  try {
+    const raw = localStorage.getItem('tiptracker_schedule');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      scheduledShifts = parsed.map(s => ({
+        title: s.title,
+        start: s.start ? new Date(s.start) : null,
+        end: s.end ? new Date(s.end) : null
+      }));
+      document.getElementById('sync-status').textContent = `${scheduledShifts.length} shifts loaded — tap Sync to refresh`;
+    }
+  } catch(e) { scheduledShifts = []; }
+}
+ 
+function getScheduledForDate(dateStr) {
+  return scheduledShifts.filter(s => {
+    if (!s.start) return false;
+    const d = new Date(s.start);
+    return d.toLocaleDateString('en-CA') === dateStr;
+  });
+}
+ 
+function renderSchedule() {
+  const el = document.getElementById('schedule-list');
+  if (!scheduledShifts.length) {
+    el.innerHTML = '<div class="empty-state">No upcoming shifts found</div>';
+    return;
+  }
+  el.innerHTML = scheduledShifts.map(s => {
+    const dateStr = s.start ? s.start.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'}) : '—';
+    const hrs = hoursFromShift(s);
+    const alreadyLogged = getShiftForDate(s.start ? s.start.toLocaleDateString('en-CA') : '');
+    return `<div class="sched-item">
+      <div>
+        <div class="sched-date">${dateStr}</div>
+        <div class="sched-time">${fmtTime(s.start)} – ${fmtTime(s.end)} · ${hrs}h</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        ${alreadyLogged ? '<span class="sched-badge" style="background:var(--green-bg);color:var(--green);">✓ Logged</span>' : `<button onclick="prefillShift('${s.start?.toLocaleDateString('en-CA')}', ${hrs})" style="padding:5px 10px;font-size:11px;border:0.5px solid var(--border2);border-radius:20px;background:transparent;color:var(--text);cursor:pointer;font-family:inherit;">Log tips</button>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+ 
+function prefillShift(dateStr, hours) {
+  document.getElementById('s-date').value = dateStr;
+  document.getElementById('s-hours').value = hours;
+  switchTab('log');
+  livePreview();
+}
+ 
 // SERVICE WORKER
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('sw.js').catch(()=>{});
 }
  
+loadSchedule();
 loadData();
 </script>
 </body>
 </html>
- 
