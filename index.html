@@ -322,8 +322,8 @@ function renderCal(){
   const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
   document.getElementById('cal-title').textContent=months[calMonth]+' '+calYear;
   const grid=document.getElementById('cal-grid');grid.innerHTML='';
-  ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d=>{const el=document.createElement('div');el.className='cal-dow';el.textContent=d;grid.appendChild(el);});
-  const firstDay=new Date(calYear,calMonth,1).getDay();
+  ['Mo','Tu','We','Th','Fr','Sa','Su'].forEach(d=>{const el=document.createElement('div');el.className='cal-dow';el.textContent=d;grid.appendChild(el);});
+  const rawDay=new Date(calYear,calMonth,1).getDay();const firstDay=(rawDay===0?6:rawDay-1);
   const dim=new Date(calYear,calMonth+1,0).getDate();
   const diPrev=new Date(calYear,calMonth,0).getDate();
   const todayStr=now.toISOString().slice(0,10);
@@ -453,7 +453,7 @@ function getFiltered(period){
   const n=new Date();
   return shifts.filter(s=>{
     const d=new Date(s.date+'T12:00:00');
-    if(period==='week'){const day=n.getDay();const mon=new Date(n);mon.setDate(n.getDate()-(day===0?6:day-1));mon.setHours(0,0,0,0);return d>=mon;}
+    if(period==='week'){const day=n.getDay();const mon=new Date(n);mon.setDate(n.getDate()-(day===0?6:day-1));mon.setHours(0,0,0,0);const sun=new Date(mon);sun.setDate(mon.getDate()+6);sun.setHours(23,59,59,999);return d>=mon&&d<=sun;}
     if(period==='month')return d.getMonth()===n.getMonth()&&d.getFullYear()===n.getFullYear();
     if(period==='year')return d.getFullYear()===n.getFullYear();
     return true;
@@ -484,9 +484,9 @@ function renderBestWorst(data){
 }
  
 function buildDOW(){
-  const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
   const buckets=Array(7).fill(null).map(()=>[]);
-  shifts.forEach(s=>{const d=new Date(s.date+'T12:00:00');buckets[d.getDay()].push(netOf(s));});
+  shifts.forEach(s=>{const d=new Date(s.date+'T12:00:00');const idx=(d.getDay()===0?6:d.getDay()-1);buckets[idx].push(netOf(s));});
   const avgs=buckets.map(b=>b.length>0?parseFloat((b.reduce((a,v)=>a+v,0)/b.length).toFixed(2)):0);
   const counts=buckets.map(b=>b.length);
   const maxAvg=Math.max(...avgs.filter((_,i)=>counts[i]>0));
