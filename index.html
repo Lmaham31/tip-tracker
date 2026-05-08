@@ -36,26 +36,26 @@
   }
   html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}
   body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;}
- 
+
   /* HEADER */
   .header{background:#111111;color:#fff;padding:calc(var(--safe-top) + 14px) 16px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
   .header-title{font-size:17px;font-weight:600;letter-spacing:0.01em;}
   .header-dot{width:8px;height:8px;border-radius:50%;background:#4CAF50;}
- 
+
   /* TAB BAR */
   .tab-bar{display:flex;background:var(--bg2);border-bottom:0.5px solid var(--border);flex-shrink:0;}
   .tab{flex:1;padding:11px 4px;font-size:12px;font-weight:500;border:none;background:transparent;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;}
   .tab.active{color:var(--text);border-bottom:2px solid var(--text);}
- 
+
   /* CONTENT */
   .content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
   .section{display:none;padding:14px 14px calc(var(--safe-bottom) + 20px);}
   .section.active{display:block;}
- 
+
   /* CARDS */
   .card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;}
   .card-label{font-size:10px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;}
- 
+
   /* FORM */
   .field{margin-bottom:10px;}
   .field label{display:block;font-size:13px;color:var(--text2);margin-bottom:4px;}
@@ -63,7 +63,7 @@
   .field input:focus{outline:none;border-color:var(--text2);}
   .btn-save{width:100%;padding:14px;background:var(--text);color:var(--bg);border:none;border-radius:var(--radius-sm);font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:6px;-webkit-tap-highlight-color:transparent;}
   .btn-save:active{opacity:.8;}
- 
+
   /* METRICS */
   .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;}
   .metric{background:var(--bg2);border-radius:var(--radius-sm);padding:10px;}
@@ -71,7 +71,7 @@
   .metric-value{font-size:16px;font-weight:600;}
   .green{color:var(--green);}
   .red-val{color:var(--red);}
- 
+
   /* HIGHLIGHT CARDS */
   .hl-card{border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;}
   .hl-best{background:var(--green-bg);border:0.5px solid var(--green-border);}
@@ -84,7 +84,7 @@
   .hl-right{text-align:right;}
   .hl-amount{font-size:19px;font-weight:600;}
   .hl-detail{font-size:11px;color:var(--text2);}
- 
+
   /* CALENDAR */
   .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
   .cal-nav{background:none;border:none;font-size:24px;cursor:pointer;color:var(--text);padding:4px 12px;-webkit-tap-highlight-color:transparent;}
@@ -103,7 +103,7 @@
   .pct-great{color:var(--green);}
   .pct-ok{color:var(--amber);}
   .pct-low{color:var(--red);}
- 
+
   /* MODAL */
   .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity .2s;}
   .modal-overlay.open{opacity:1;pointer-events:all;}
@@ -121,7 +121,7 @@
   .pct-pill.low{background:var(--red-bg);color:var(--red);}
   .modal-close{width:100%;padding:13px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);background:transparent;color:var(--text);font-size:15px;cursor:pointer;font-family:inherit;margin-top:16px;}
   .modal-del{width:100%;padding:11px;border:none;background:transparent;color:var(--red);font-size:14px;cursor:pointer;font-family:inherit;margin-top:6px;}
- 
+
   /* SUMMARY */
   .period-row{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
   .period-btn{padding:6px 13px;font-size:12px;border:0.5px solid var(--border2);border-radius:20px;background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;}
@@ -150,39 +150,89 @@
   .sched-date{font-size:13px;font-weight:500;}
   .sched-time{font-size:12px;color:var(--text2);margin-top:2px;}
   .sched-badge{font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(100,100,200,0.12);color:#5555cc;font-weight:500;}
+
+  /* CAL VIEW TOGGLE */
+  .cal-view-toggle{display:flex;gap:0;margin-bottom:12px;border:0.5px solid var(--border2);border-radius:20px;overflow:hidden;width:fit-content;}
+  .cal-view-btn{padding:5px 16px;font-size:12px;font-weight:500;border:none;background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;}
+  .cal-view-btn.active{background:var(--text);color:var(--bg);}
+
+  /* WEEK VIEW */
+  .week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:14px;}
+  .week-tile{border-radius:var(--radius-sm);padding:8px 4px;border:0.5px solid var(--border);text-align:center;cursor:pointer;min-height:90px;display:flex;flex-direction:column;align-items:center;gap:2px;}
+  .week-tile.has-shift{background:var(--green-bg);border-color:var(--green-border);}
+  .week-tile.today{border-color:var(--text2);border-width:1px;}
+  .week-tile.scheduled{background:rgba(100,100,200,0.08);border-color:rgba(100,100,200,0.25);}
+  .week-tile-dow{font-size:9px;font-weight:600;color:var(--text2);text-transform:uppercase;}
+  .week-tile-date{font-size:13px;font-weight:600;color:var(--text);}
+  .week-tile.has-shift .week-tile-date{color:var(--green);}
+  .week-tile-amount{font-size:11px;font-weight:600;color:var(--green);margin-top:2px;}
+  .week-tile-hr{font-size:9px;color:var(--green);opacity:.8;}
+  .week-tile-pct{font-size:9px;font-weight:600;}
+  .week-tile-sched{font-size:9px;color:#5555cc;margin-top:1px;}
+
+  /* CAL STATS */
+  .cal-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
+  .cal-stat{background:var(--bg2);border-radius:var(--radius-sm);padding:10px 12px;}
+  .cal-stat-label{font-size:10px;color:var(--text2);margin-bottom:2px;}
+  .cal-stat-value{font-size:15px;font-weight:600;}
+
+  /* WORDS TAB */
+  .words-period{display:flex;gap:5px;margin-bottom:16px;flex-wrap:wrap;}
+  .words-btn{padding:5px 12px;font-size:12px;border:0.5px solid var(--border2);border-radius:20px;background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;}
+  .words-btn.active{background:var(--text);color:var(--bg);border-color:var(--text);}
+  .words-block{background:var(--bg2);border-radius:var(--radius);padding:16px;margin-bottom:12px;}
+  .words-block-title{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+  .words-block-icon{font-size:16px;}
+  .words-body{font-size:14px;line-height:1.65;color:var(--text);}
+  .words-body strong{color:var(--green);font-weight:600;}
+  .words-body .neg{color:var(--red);}
 </style>
 </head>
 <body>
- 
+
 <div class="header">
   <div class="header-title">Tip Tracker</div>
   <div class="header-dot"></div>
 </div>
- 
+
 <div class="tab-bar">
-  <button class="tab active" onclick="switchTab('cal')">Calendar</button>
-  <button class="tab" onclick="switchTab('log')">Log Shift</button>
+  <button class="tab active" onclick="switchTab('cal')">Cal</button>
+  <button class="tab" onclick="switchTab('log')">Log</button>
   <button class="tab" onclick="switchTab('schedule')">Schedule</button>
   <button class="tab" onclick="switchTab('summary')">Summary</button>
+  <button class="tab" onclick="switchTab('words')">Words</button>
 </div>
- 
+
 <div class="content">
- 
+
   <!-- CALENDAR -->
   <div class="section active" id="tab-cal">
-    <div class="cal-header">
-      <button class="cal-nav" onclick="changeMonth(-1)">‹</button>
-      <span class="cal-month" id="cal-title"></span>
-      <button class="cal-nav" onclick="changeMonth(1)">›</button>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div class="cal-view-toggle">
+        <button class="cal-view-btn active" id="btn-month-view" onclick="setCalView('month')">Month</button>
+        <button class="cal-view-btn" id="btn-week-view" onclick="setCalView('week')">Week</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <button class="cal-nav" style="font-size:20px;padding:2px 8px;" onclick="calNav(-1)">‹</button>
+        <span class="cal-month" id="cal-title" style="font-size:14px;"></span>
+        <button class="cal-nav" style="font-size:20px;padding:2px 8px;" onclick="calNav(1)">›</button>
+      </div>
     </div>
-    <div class="cal-grid" id="cal-grid"></div>
-    <div class="pct-legend">
-      <span><span class="pct-dot" style="background:var(--green);"></span><span style="color:var(--text2)">20%+ great</span></span>
-      <span><span class="pct-dot" style="background:var(--amber);"></span><span style="color:var(--text2)">15–20% ok</span></span>
-      <span><span class="pct-dot" style="background:var(--red);"></span><span style="color:var(--text2)">under 15% low</span></span>
+    <div id="cal-month-view">
+      <div class="cal-grid" id="cal-grid"></div>
+      <div class="pct-legend">
+        <span><span class="pct-dot" style="background:var(--green);"></span><span style="color:var(--text2)">20%+ great</span></span>
+        <span><span class="pct-dot" style="background:var(--amber);"></span><span style="color:var(--text2)">15–20% ok</span></span>
+        <span><span class="pct-dot" style="background:var(--red);"></span><span style="color:var(--text2)">under 15% low</span></span>
+      </div>
     </div>
+    <div id="cal-week-view" style="display:none;">
+      <div class="week-grid" id="week-grid"></div>
+    </div>
+    <!-- CAL STATS -->
+    <div class="cal-stats" id="cal-stats"></div>
   </div>
- 
+
   <!-- LOG SHIFT -->
   <div class="section" id="tab-log">
     <div class="card">
@@ -205,7 +255,7 @@
       <button class="btn-save" onclick="logShift()">Save shift</button>
     </div>
   </div>
- 
+
   <!-- SCHEDULE -->
   <div class="section" id="tab-schedule">
     <div class="sync-bar">
@@ -220,7 +270,7 @@
       <div id="schedule-list"><div class="empty-state">No scheduled shifts loaded yet — tap Sync</div></div>
     </div>
   </div>
- 
+
   <!-- SUMMARY -->
   <div class="section" id="tab-summary">
     <div class="period-row">
@@ -239,10 +289,10 @@
       <div class="metric"><div class="metric-label">Total sales</div><div class="metric-value" id="sm-sales">—</div></div>
       <div class="metric"><div class="metric-label">Shifts</div><div class="metric-value" id="sm-shifts">0</div></div>
     </div>
- 
+
     <div class="section-title">Best & worst</div>
     <div id="best-worst-block"></div>
- 
+
     <div class="section-title" style="margin-top:16px;">Earnings charts</div>
     <div class="chart-toggle">
       <button class="chart-btn active" onclick="setChart('dow',this)">By day of week</button>
@@ -253,7 +303,7 @@
     <div style="position:relative;width:100%;height:190px;">
       <canvas id="mainChart" role="img" aria-label="Earnings bar chart">Earnings chart.</canvas>
     </div>
- 
+
     <div class="card" style="margin-top:14px;">
       <div class="card-label">Full breakdown</div>
       <div class="sum-row"><span style="color:var(--text2)">Total cash tips</span><span id="sm-cash">$0.00</span></div>
@@ -265,9 +315,20 @@
       <div class="sum-row total"><span>Net take-home</span><span id="sm-net2">$0.00</span></div>
     </div>
   </div>
- 
+
+  <!-- WORDS -->
+  <div class="section" id="tab-words">
+    <div class="words-period">
+      <button class="words-btn active" onclick="setWordsPeriod('week',this)">Week</button>
+      <button class="words-btn" onclick="setWordsPeriod('month',this)">Month</button>
+      <button class="words-btn" onclick="setWordsPeriod('year',this)">Year</button>
+      <button class="words-btn" onclick="setWordsPeriod('all',this)">All time</button>
+    </div>
+    <div id="words-content"></div>
+  </div>
+
 </div><!-- end content -->
- 
+
 <!-- MODAL -->
 <div class="modal-overlay" id="modal" onclick="closeModalBg(event)">
   <div class="modal">
@@ -290,21 +351,22 @@
     <button class="modal-del" onclick="deleteFromModal()">Delete this shift</button>
   </div>
 </div>
- 
+
 <script>
 const KEY='tiptracker_v2';
 let shifts=[],calYear,calMonth,mainChart=null,currentPeriod='week',currentChart='dow',modalShiftId=null;
+let calView='month',calWeekStart=null,wordsPeriod='week';
 const now=new Date();
 calYear=now.getFullYear();calMonth=now.getMonth();
 document.getElementById('s-date').value=now.toISOString().slice(0,10);
- 
+
 // STORAGE - uses localStorage for PWA
 function loadData(){
   try{const r=localStorage.getItem(KEY);if(r)shifts=JSON.parse(r);}catch(e){shifts=[];}
   renderCal();renderSummary();
 }
 function saveData(){try{localStorage.setItem(KEY,JSON.stringify(shifts));}catch(e){}}
- 
+
 const fmt2=n=>'$'+n.toFixed(2);
 const fmtk=n=>n>=1000?'$'+(n/1000).toFixed(1)+'k':'$'+Math.round(n);
 const netOf=s=>s.cash+s.credit-s.tipout;
@@ -312,16 +374,15 @@ const tipPct=s=>s.sales>0?(s.cash+s.credit)/s.sales*100:null;
 const pctClass=p=>p===null?'':p>=20?'great':p>=15?'ok':'low';
 const fmtDate=ds=>{const d=new Date(ds+'T12:00:00');return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});};
 const getShiftForDate=ds=>shifts.find(s=>s.date===ds)||null;
- 
+
 function weekKey(ds){const d=new Date(ds+'T12:00:00');const day=d.getDay();const mon=new Date(d);mon.setDate(d.getDate()-(day===0?6:day-1));return mon.toISOString().slice(0,10);}
 function weekLabel(ds){const d=new Date(ds+'T12:00:00');const day=d.getDay();const mon=new Date(d);mon.setDate(d.getDate()-(day===0?6:day-1));return mon.toLocaleDateString('en-US',{month:'short',day:'numeric'});}
 function monthKey(ds){return ds.slice(0,7);}
 function monthLabel(k){const[y,m]=k.split('-');return new Date(+y,+m-1,1).toLocaleDateString('en-US',{month:'short',year:'2-digit'});}
- 
+
 function renderCal(){
-  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
-  document.getElementById('cal-title').textContent=months[calMonth]+' '+calYear;
   const grid=document.getElementById('cal-grid');grid.innerHTML='';
+  if(calView==='week'){renderWeekView();return;}
   ['Mo','Tu','We','Th','Fr','Sa','Su'].forEach(d=>{const el=document.createElement('div');el.className='cal-dow';el.textContent=d;grid.appendChild(el);});
   const rawDay=new Date(calYear,calMonth,1).getDay();const firstDay=(rawDay===0?6:rawDay-1);
   const dim=new Date(calYear,calMonth+1,0).getDate();
@@ -361,12 +422,112 @@ function renderCal(){
     });
     grid.appendChild(el);
   }
+  // update title
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cal-title').textContent=months[calMonth]+' '+calYear;
+  renderCalStats('month');
 }
- 
+
 function changeMonth(dir){calMonth+=dir;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}renderCal();}
- 
+
+function setCalView(v){
+  calView=v;
+  document.getElementById('btn-month-view').classList.toggle('active',v==='month');
+  document.getElementById('btn-week-view').classList.toggle('active',v==='week');
+  document.getElementById('cal-month-view').style.display=v==='month'?'':'none';
+  document.getElementById('cal-week-view').style.display=v==='week'?'':'none';
+  if(v==='week'&&!calWeekStart){
+    const n=new Date();const day=n.getDay();
+    calWeekStart=new Date(n);calWeekStart.setDate(n.getDate()-(day===0?6:day-1));calWeekStart.setHours(0,0,0,0);
+  }
+  renderCal();
+}
+
+function calNav(dir){
+  if(calView==='month'){changeMonth(dir);}
+  else{
+    const ws=new Date(calWeekStart);ws.setDate(ws.getDate()+dir*7);calWeekStart=ws;renderCal();
+  }
+}
+
+function renderWeekView(){
+  const grid=document.getElementById('week-grid');
+  grid.innerHTML='';
+  const todayStr=new Date().toISOString().slice(0,10);
+  const dows=['Mo','Tu','We','Th','Fr','Sa','Su'];
+  for(let i=0;i<7;i++){
+    const d=new Date(calWeekStart);d.setDate(calWeekStart.getDate()+i);
+    const dateStr=d.toISOString().slice(0,10);
+    const shift=getShiftForDate(dateStr);
+    const scheduled=getScheduledForDate(dateStr);
+    const tile=document.createElement('div');
+    tile.className='week-tile';
+    if(shift)tile.classList.add('has-shift');
+    else if(scheduled.length)tile.classList.add('scheduled');
+    if(dateStr===todayStr)tile.classList.add('today');
+    const dow=document.createElement('div');dow.className='week-tile-dow';dow.textContent=dows[i];tile.appendChild(dow);
+    const dn=document.createElement('div');dn.className='week-tile-date';dn.textContent=d.getDate();tile.appendChild(dn);
+    if(shift){
+      const n=netOf(shift);
+      const amt=document.createElement('div');amt.className='week-tile-amount';amt.textContent=fmt2(n);tile.appendChild(amt);
+      if(shift.hours>0){const hr=document.createElement('div');hr.className='week-tile-hr';hr.textContent='$'+(n/shift.hours).toFixed(0)+'/hr';tile.appendChild(hr);}
+      const pct=tipPct(shift);
+      if(pct!==null){const p=document.createElement('div');p.className='week-tile-pct pct-'+pctClass(pct);p.textContent=pct.toFixed(0)+'%';tile.appendChild(p);}
+    } else if(scheduled.length){
+      const s=scheduled[0];
+      const sc=document.createElement('div');sc.className='week-tile-sched';sc.textContent=fmtTime(s.start);tile.appendChild(sc);
+      const sh=document.createElement('div');sh.className='week-tile-sched';sh.textContent=hoursFromShift(s)+'h';tile.appendChild(sh);
+    }
+    tile.addEventListener('click',()=>{
+      if(shift)openModal(shift);
+      else if(scheduled.length)prefillShift(dateStr,hoursFromShift(scheduled[0]));
+      else openLogForDate(dateStr);
+    });
+    grid.appendChild(tile);
+  }
+  // update title
+  const endDate=new Date(calWeekStart);endDate.setDate(calWeekStart.getDate()+6);
+  document.getElementById('cal-title').textContent=
+    calWeekStart.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' – '+
+    endDate.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  renderCalStats('week');
+}
+
+function renderCalStats(view){
+  const el=document.getElementById('cal-stats');
+  let data;
+  if(view==='week'){
+    const ws=new Date(calWeekStart);const we=new Date(calWeekStart);we.setDate(we.getDate()+6);we.setHours(23,59,59,999);
+    data=shifts.filter(s=>{const d=new Date(s.date+'T12:00:00');return d>=ws&&d<=we;});
+  } else {
+    data=shifts.filter(s=>{const d=new Date(s.date+'T12:00:00');return d.getMonth()===calMonth&&d.getFullYear()===calYear;});
+  }
+  const gross=data.reduce((a,s)=>a+s.cash+s.credit,0);
+  const tipout=data.reduce((a,s)=>a+s.tipout,0);
+  const cash=data.reduce((a,s)=>a+s.cash,0);
+  const hours=data.reduce((a,s)=>a+s.hours,0);
+  const net=gross-tipout;
+  // weekly avg all time
+  const weekMap={};shifts.forEach(s=>{const k=weekKey(s.date);if(!weekMap[k])weekMap[k]=0;weekMap[k]+=netOf(s);});
+  const weekVals=Object.values(weekMap);const weekAvg=weekVals.length>0?weekVals.reduce((a,v)=>a+v,0)/weekVals.length:0;
+  // YTD
+  const yr=new Date().getFullYear();
+  const ytd=shifts.filter(s=>new Date(s.date+'T12:00:00').getFullYear()===yr);
+  const ytdNet=ytd.reduce((a,s)=>a+netOf(s),0);
+  const ytdCash=ytd.reduce((a,s)=>a+s.cash,0);
+  const stats=[
+    {label:view==='week'?'This week':'This month',value:fmt2(net)},
+    {label:'Total cash',value:fmt2(cash)},
+    {label:'Weekly avg',value:'$'+weekAvg.toFixed(0)},
+    {label:'Hourly avg',value:hours>0?'$'+(net/hours).toFixed(2):data.length>0?'—':'—'},
+    {label:'Cash YTD',value:fmt2(ytdCash)},
+    {label:'Income YTD',value:fmt2(ytdNet)},
+  ];
+  el.innerHTML=stats.map(s=>`<div class="cal-stat"><div class="cal-stat-label">${s.label}</div><div class="cal-stat-value">${s.value}</div></div>`).join('');
+}
+
 function pctPill(pct){if(pct===null)return '<span style="color:var(--text2)">—</span>';const cls=pctClass(pct);return`<span class="pct-pill ${cls}">${pct.toFixed(1)}%</span>`;}
- 
+
 function openModal(shift){
   modalShiftId=shift.id;const n=netOf(shift);const pct=tipPct(shift);
   const d=new Date(shift.date+'T12:00:00');
@@ -396,7 +557,7 @@ function openModal(shift){
 function closeModalBg(e){if(e.target===document.getElementById('modal'))document.getElementById('modal').classList.remove('open');}
 function deleteFromModal(){if(!modalShiftId)return;shifts=shifts.filter(s=>s.id!==modalShiftId);saveData();renderCal();renderSummary();document.getElementById('modal').classList.remove('open');}
 function openLogForDate(ds){document.getElementById('s-date').value=ds;switchTab('log');}
- 
+
 function livePreview(){
   const cash=parseFloat(document.getElementById('s-cash').value)||0;
   const credit=parseFloat(document.getElementById('s-credit').value)||0;
@@ -426,7 +587,7 @@ function livePreview(){
     }
   } else box.style.display='none';
 }
- 
+
 function logShift(){
   const date=document.getElementById('s-date').value||now.toISOString().slice(0,10);
   const hours=parseFloat(document.getElementById('s-hours').value)||0;
@@ -448,7 +609,7 @@ function logShift(){
   calMonth=new Date(date+'T12:00:00').getMonth();calYear=new Date(date+'T12:00:00').getFullYear();
   renderCal();renderSummary();switchTab('cal');
 }
- 
+
 function getFiltered(period){
   const n=new Date();
   return shifts.filter(s=>{
@@ -459,10 +620,10 @@ function getFiltered(period){
     return true;
   });
 }
- 
+
 function setPeriod(p,btn){currentPeriod=p;document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderSummary();}
 function setChart(c,btn){currentChart=c;document.querySelectorAll('.chart-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderCharts();}
- 
+
 function renderBestWorst(data){
   const el=document.getElementById('best-worst-block');
   if(data.length===0){el.innerHTML='<div class="empty-state">No shifts in this period yet</div>';return;}
@@ -482,7 +643,7 @@ function renderBestWorst(data){
   };
   el.innerHTML=hlCard(best,'best')+(data.length>1?hlCard(worst,'worst'):'');
 }
- 
+
 function buildDOW(){
   const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
   const buckets=Array(7).fill(null).map(()=>[]);
@@ -493,7 +654,7 @@ function buildDOW(){
   document.getElementById('legend-row').innerHTML=`<div class="legend-item"><span class="legend-swatch" style="background:var(--green);opacity:.7;"></span>Avg earnings — all time by day</div>`;
   return{labels:days,datasets:[{label:'Avg take-home',data:avgs,backgroundColor:avgs.map((v,i)=>counts[i]===0?'rgba(128,128,128,0.15)':v===maxAvg?'rgba(59,109,17,0.9)':'rgba(59,109,17,0.5)'),borderRadius:4,borderSkipped:false}]};
 }
- 
+
 function buildWeekVsWeek(){
   const weekMap={};
   shifts.forEach(s=>{const k=weekKey(s.date);if(!weekMap[k])weekMap[k]={total:0,label:weekLabel(s.date)};weekMap[k].total+=netOf(s);});
@@ -503,7 +664,7 @@ function buildWeekVsWeek(){
   document.getElementById('legend-row').innerHTML=`<div class="legend-item"><span class="legend-swatch" style="background:var(--green);opacity:.9;"></span>Most recent</div><div class="legend-item"><span class="legend-swatch" style="background:var(--green);opacity:.3;"></span>Older</div>`;
   return{labels:keys.map(k=>weekMap[k].label),datasets:[{label:'Weekly earnings',data:vals,backgroundColor:keys.map((_,i)=>`rgba(59,109,17,${opacities[Math.min(i,opacities.length-1)]})`),borderRadius:4,borderSkipped:false}]};
 }
- 
+
 function buildMonthVsMonth(){
   const monthMap={};
   shifts.forEach(s=>{const k=monthKey(s.date);if(!monthMap[k])monthMap[k]=0;monthMap[k]+=netOf(s);});
@@ -513,7 +674,7 @@ function buildMonthVsMonth(){
   document.getElementById('legend-row').innerHTML=`<div class="legend-item"><span class="legend-swatch" style="background:var(--green);opacity:.9;"></span>Most recent</div><div class="legend-item"><span class="legend-swatch" style="background:var(--green);opacity:.3;"></span>Older</div>`;
   return{labels:keys.map(k=>monthLabel(k)),datasets:[{label:'Monthly earnings',data:vals,backgroundColor:keys.map((_,i)=>`rgba(59,109,17,${opacities[Math.min(i,opacities.length-1)]})`),borderRadius:4,borderSkipped:false}]};
 }
- 
+
 function renderCharts(){
   const ctx=document.getElementById('mainChart').getContext('2d');
   if(mainChart){mainChart.destroy();mainChart=null;}
@@ -524,7 +685,7 @@ function renderCharts(){
   if(!chartData.labels.length){document.getElementById('legend-row').innerHTML='<div style="font-size:12px;color:var(--text2);">Log more shifts to see charts</div>';return;}
   mainChart=new Chart(ctx,{type:'bar',data:chartData,options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'$'+c.parsed.y.toFixed(2)}}},scales:{x:{grid:{display:false},ticks:{font:{size:10},maxRotation:0}},y:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{callback:v=>'$'+v,font:{size:10}},beginAtZero:true}}}});
 }
- 
+
 function renderSummary(){
   const data=getFiltered(currentPeriod);
   const gross=data.reduce((a,s)=>a+s.cash+s.credit,0);
@@ -555,17 +716,117 @@ function renderSummary(){
   renderBestWorst(data);
   renderCharts();
 }
- 
+
+// WORDS
+function setWordsPeriod(p,btn){wordsPeriod=p;document.querySelectorAll('.words-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderWords();}
+
+function renderWords(){
+  const el=document.getElementById('words-content');
+  const data=getFiltered(wordsPeriod);
+  if(data.length===0){el.innerHTML='<div class="empty-state">No shifts in this period yet — log some shifts first!</div>';return;}
+
+  const gross=data.reduce((a,s)=>a+s.cash+s.credit,0);
+  const tipout=data.reduce((a,s)=>a+s.tipout,0);
+  const cash=data.reduce((a,s)=>a+s.cash,0);
+  const credit=data.reduce((a,s)=>a+s.credit,0);
+  const hours=data.reduce((a,s)=>a+s.hours,0);
+  const sales=data.reduce((a,s)=>a+(s.sales||0),0);
+  const net=gross-tipout;
+  const avg=net/data.length;
+  const hrAvg=hours>0?net/hours:0;
+
+  // best/worst shift
+  const sorted=[...data].sort((a,b)=>netOf(b)-netOf(a));
+  const best=sorted[0],worst=sorted[sorted.length-1];
+
+  // best day of week
+  const dowMap={};
+  data.forEach(s=>{const d=new Date(s.date+'T12:00:00');const day=d.toLocaleDateString('en-US',{weekday:'long'});if(!dowMap[day])dowMap[day]=[];dowMap[day].push(netOf(s));});
+  const dowAvgs=Object.entries(dowMap).map(([day,vals])=>({day,avg:vals.reduce((a,v)=>a+v,0)/vals.length}));
+  dowAvgs.sort((a,b)=>b.avg-a.avg);
+  const bestDay=dowAvgs[0];const worstDay=dowAvgs[dowAvgs.length-1];
+
+  // avg tip pct
+  const withSales=data.filter(s=>s.sales>0);
+  const avgPct=withSales.length>0?withSales.reduce((a,s)=>a+(s.cash+s.credit)/s.sales*100,0)/withSales.length:null;
+
+  // week best/worst
+  const weekMap={};
+  data.forEach(s=>{const k=weekKey(s.date);const lbl=weekLabel(s.date);if(!weekMap[k])weekMap[k]={label:lbl,total:0};weekMap[k].total+=netOf(s);});
+  const weeks=Object.values(weekMap).sort((a,b)=>b.total-a.total);
+  const bestWeek=weeks[0];const worstWeek=weeks[weeks.length-1];
+
+  // period label
+  const periodLabels={week:'this week',month:'this month',year:'this year',all:'all time'};
+  const pl=periodLabels[wordsPeriod];
+
+  // YTD compare
+  const yr=new Date().getFullYear();
+  const ytd=shifts.filter(s=>new Date(s.date+'T12:00:00').getFullYear()===yr);
+  const ytdNet=ytd.reduce((a,s)=>a+netOf(s),0);
+
+  const blocks=[];
+
+  // This period block
+  let periodText=`So far ${pl}, your total take-home was <strong>${fmt2(net)}</strong>, of which <strong>${fmt2(cash)}</strong> was cash and <strong>${fmt2(credit)}</strong> was credit. `;
+  if(hours>0)periodText+=`You worked a total of <strong>${hours.toFixed(1)} hours</strong> across <strong>${data.length} shift${data.length!==1?'s':''}</strong>, averaging <strong>${fmt2(avg)}</strong> per shift and <strong>$${hrAvg.toFixed(2)}/hr</strong>. `;
+  if(sales>0)periodText+=`Your total sales ring was <strong>${fmt2(sales)}</strong>.`;
+  blocks.push({icon:'📊',title:'This Period',body:periodText});
+
+  // Best & worst
+  let bwText=`Your best shift ${pl} was <strong>${fmtDate(best.date)}</strong> where you took home <strong>${fmt2(netOf(best))}</strong>`;
+  if(best.hours>0)bwText+=` at <strong>$${(netOf(best)/best.hours).toFixed(2)}/hr</strong>`;
+  bwText+=`. `;
+  if(data.length>1){
+    bwText+=`Your worst was <strong>${fmtDate(worst.date)}</strong> with <strong class="neg">${fmt2(netOf(worst))}</strong>. `;
+  }
+  if(bestDay)bwText+=`Your strongest day of the week ${pl} has been <strong>${bestDay.day}</strong>, averaging <strong>${fmt2(bestDay.avg)}</strong> per shift.`;
+  blocks.push({icon:'⭐',title:'Best & Worst',body:bwText});
+
+  // Tip % block
+  if(avgPct!==null){
+    const pctColor=avgPct>=20?'':'neg';
+    let pctText=`Your average tip percentage ${pl} was <strong class="${avgPct>=20?'':'neg'}">${avgPct.toFixed(1)}%</strong>. `;
+    pctText+=avgPct>=20?`That's a strong tip rate — your guests are tipping well. `:`There's room to grow your tip percentage. `;
+    if(withSales.length>0){const topPct=[...withSales].sort((a,b)=>(b.cash+b.credit)/b.sales-(a.cash+a.credit)/a.sales)[0];pctText+=`Your best tip % shift was <strong>${fmtDate(topPct.date)}</strong> at <strong>${((topPct.cash+topPct.credit)/topPct.sales*100).toFixed(1)}%</strong>.`;}
+    blocks.push({icon:'💳',title:'Tip Percentage',body:pctText});
+  }
+
+  // Week comparison
+  if(weeks.length>1){
+    let wkText=`Your best week ${pl} was the week of <strong>${bestWeek.label}</strong>, bringing in <strong>${fmt2(bestWeek.total)}</strong>. `;
+    wkText+=`Your slowest was the week of <strong>${worstWeek.label}</strong> with <strong class="neg">${fmt2(worstWeek.total)}</strong>. `;
+    const weekAvgVal=Object.values(weekMap).reduce((a,v)=>a+v.total,0)/weeks.length;
+    wkText+=`You averaged <strong>${fmt2(weekAvgVal)}</strong> per week ${pl}.`;
+    blocks.push({icon:'📅',title:'Week Breakdown',body:wkText});
+  }
+
+  // YTD block
+  if(wordsPeriod!=='year'&&wordsPeriod!=='all'){
+    let ytdText=`Year to date you've taken home <strong>${fmt2(ytdNet)}</strong> across <strong>${ytd.length} shifts</strong>. `;
+    const ytdWeeks=new Set(ytd.map(s=>weekKey(s.date))).size;
+    if(ytdWeeks>0)ytdText+=`That's an average of <strong>${fmt2(ytdNet/ytdWeeks)}</strong> per week.`;
+    blocks.push({icon:'🗓️',title:'Year to Date',body:ytdText});
+  }
+
+  el.innerHTML=blocks.map(b=>`
+    <div class="words-block">
+      <div class="words-block-title"><span class="words-block-icon">${b.icon}</span>${b.title}</div>
+      <div class="words-body">${b.body}</div>
+    </div>`).join('');
+}
+
 function switchTab(name){
-  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['cal','log','schedule','summary'][i]===name));
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['cal','log','schedule','summary','words'][i]===name));
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
   if(name==='summary')renderSummary();
   if(name==='schedule')renderSchedule();
+  if(name==='words')renderWords();
 }
- 
+
 const SHEETS_URL = "https://script.google.com/macros/s/AKfycbxAam-bRgC5Hd2WjyXVoV7h5ICGZfB8dkg1Ji5Q6K4xDNoi3S4xUNeVaD2KX_TG0NDl/exec";
- 
+
 async function syncToSheets(entry) {
   try {
     await fetch(SHEETS_URL, {
@@ -578,12 +839,12 @@ async function syncToSheets(entry) {
     console.log("Sheets sync failed:", e);
   }
 }
- 
+
 // SCHEDULE SYNC
 const ICS_URL = 'https://app.7shifts.com/calendar/schedule/129910/38a39b4d8d18245e6e4a67060c5069cd.ics?u=10914204';
 const ICS_PROXY = 'https://corsproxy.io/?';
 let scheduledShifts = [];
- 
+
 function parseICS(text) {
   const events = [];
   const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
@@ -605,7 +866,7 @@ function parseICS(text) {
   }
   return events;
 }
- 
+
 function parseICSDate(val) {
   if (!val) return null;
   val = val.trim();
@@ -614,17 +875,17 @@ function parseICSDate(val) {
   const h = val.slice(9,11)||'00', mi = val.slice(11,13)||'00';
   return new Date(`${y}-${mo}-${d}T${h}:${mi}:00${val.endsWith('Z')?'Z':''}`);
 }
- 
+
 function hoursFromShift(s) {
   if (!s.start || !s.end) return 0;
   return parseFloat(((s.end - s.start) / 3600000).toFixed(2));
 }
- 
+
 function fmtTime(d) {
   if (!d) return '—';
   return d.toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit', hour12:true});
 }
- 
+
 async function syncSchedule() {
   document.getElementById('sync-status').textContent = 'Syncing...';
   try {
@@ -648,7 +909,7 @@ async function syncSchedule() {
     document.getElementById('sync-status').textContent = 'Sync failed — check connection';
   }
 }
- 
+
 function loadSchedule() {
   try {
     const raw = localStorage.getItem('tiptracker_schedule');
@@ -663,7 +924,7 @@ function loadSchedule() {
     }
   } catch(e) { scheduledShifts = []; }
 }
- 
+
 function getScheduledForDate(dateStr) {
   return scheduledShifts.filter(s => {
     if (!s.start) return false;
@@ -671,7 +932,7 @@ function getScheduledForDate(dateStr) {
     return d.toLocaleDateString('en-CA') === dateStr;
   });
 }
- 
+
 function renderSchedule() {
   const el = document.getElementById('schedule-list');
   if (!scheduledShifts.length) {
@@ -693,22 +954,21 @@ function renderSchedule() {
     </div>`;
   }).join('');
 }
- 
+
 function prefillShift(dateStr, hours) {
   document.getElementById('s-date').value = dateStr;
   document.getElementById('s-hours').value = hours;
   switchTab('log');
   livePreview();
 }
- 
+
 // SERVICE WORKER
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('sw.js').catch(()=>{});
 }
- 
+
 loadSchedule();
 loadData();
 </script>
 </body>
 </html>
- 
