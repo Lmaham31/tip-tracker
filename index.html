@@ -244,6 +244,7 @@
       <div class="field"><label>Credit card tips ($)</label><input type="number" id="s-credit" placeholder="0.00" step="0.01" min="0" inputmode="decimal" oninput="livePreview()"/></div>
       <div class="field"><label>Tip-out ($)</label><input type="number" id="s-tipout" placeholder="0.00" step="0.01" min="0" inputmode="decimal" oninput="livePreview()"/></div>
       <div class="field"><label>Base hourly wage ($/hr)</label><input type="number" id="s-wage" placeholder="0.00" step="0.01" min="0" inputmode="decimal" oninput="livePreview()"/></div>
+      <div class="field"><label>🅿️ Parking cost ($)</label><input type="number" id="s-parking" placeholder="0.00" step="0.01" min="0" inputmode="decimal"/></div>
       <div class="preview-box" id="log-preview">
         <div class="preview-row"><span style="color:var(--text2)">Gross tips</span><span id="pv-gross">—</span></div>
         <div class="preview-row"><span style="color:var(--text2)">Base pay</span><span id="pv-base">—</span></div>
@@ -304,6 +305,12 @@
       <canvas id="mainChart" role="img" aria-label="Earnings bar chart">Earnings chart.</canvas>
     </div>
 
+    <div class="card" style="margin-top:10px;">
+      <div class="card-label">🅿️ Parking expenses</div>
+      <div class="sum-row"><span style="color:var(--text2)">This week</span><span id="park-week" style="color:var(--red)">$0.00</span></div>
+      <div class="sum-row"><span style="color:var(--text2)">This month</span><span id="park-month" style="color:var(--red)">$0.00</span></div>
+      <div class="sum-row"><span style="color:var(--text2)">This year</span><span id="park-year" style="color:var(--red)">$0.00</span></div>
+    </div>
     <div class="card" style="margin-top:14px;">
       <div class="card-label">Full breakdown</div>
       <div class="sum-row"><span style="color:var(--text2)">Total cash tips</span><span id="sm-cash">$0.00</span></div>
@@ -312,6 +319,7 @@
       <div class="sum-row"><span style="color:var(--text2)">Tip-out paid</span><span id="sm-tipout">$0.00</span></div>
       <div class="sum-row"><span style="color:var(--text2)">Total sales</span><span id="sm-sales2">—</span></div>
       <div class="sum-row"><span style="color:var(--text2)">Hours worked</span><span id="sm-hours">0h</span></div>
+      <div class="sum-row"><span style="color:var(--text2)">🅿️ Parking paid</span><span id="sm-parking" style="color:var(--red)">$0.00</span></div>
       <div class="sum-row total"><span>Net take-home</span><span id="sm-net2">$0.00</span></div>
     </div>
   </div>
@@ -342,6 +350,7 @@
     <div class="modal-row" id="m-sales-row"><span style="color:var(--text2)">Sales / ring</span><span id="m-sales">—</span></div>
     <div class="modal-row" id="m-pct-row"><span style="color:var(--text2)">Tip %</span><span id="m-pct">—</span></div>
     <div class="modal-row"><span style="color:var(--text2)">Hours worked</span><span id="m-hours">—</span></div>
+    <div class="modal-row" id="m-parking-row"><span style="color:var(--text2)">🅿️ Parking</span><span id="m-parking" style="color:var(--red)">—</span></div>
     <div class="modal-row" id="m-wage-row"><span style="color:var(--text2)">Base hourly wage</span><span id="m-wage">—</span></div>
     <div class="modal-row" id="m-basepay-row"><span style="color:var(--text2)">Base pay earned</span><span id="m-basepay">—</span></div>
     <div class="modal-row big"><span>Net tips take-home</span><span id="m-net" class="green">—</span></div>
@@ -542,6 +551,9 @@ function openModal(shift){
   document.getElementById('m-pct-row').style.display=shift.sales>0?'flex':'none';
   document.getElementById('m-sales-row').style.display=shift.sales>0?'flex':'none';
   document.getElementById('m-hours').textContent=shift.hours>0?shift.hours+'h':'—';
+  const parking=shift.parking||0;
+  document.getElementById('m-parking-row').style.display=parking>0?'flex':'none';
+  document.getElementById('m-parking').textContent=parking>0?'-'+fmt2(parking):'—';
   const wage=shift.wage||0;
   const basePay=shift.hours>0&&wage>0?wage*shift.hours:0;
   const totalEarned=n+basePay;
@@ -598,12 +610,13 @@ function logShift(){
   if(cash+credit===0){alert('Enter at least one tip amount.');return;}
   const wage=parseFloat(document.getElementById('s-wage').value)||0;
   const idx=shifts.findIndex(s=>s.date===date);
-  const entry={id:Date.now(),date,hours,sales,cash,credit,tipout,wage};
+  const parking=parseFloat(document.getElementById('s-parking').value)||0;
+  const entry={id:Date.now(),date,hours,sales,cash,credit,tipout,wage,parking};
   if(idx>=0)shifts[idx]=entry;else shifts.push(entry);
   shifts.sort((a,b)=>b.date.localeCompare(a.date));
   saveData();
   syncToSheets(entry);
-  ['s-hours','s-sales','s-cash','s-credit','s-tipout','s-wage'].forEach(id=>document.getElementById(id).value='');
+  ['s-hours','s-sales','s-cash','s-credit','s-tipout','s-wage','s-parking'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('log-preview').style.display='none';
   document.getElementById('s-date').value=now.toISOString().slice(0,10);
   calMonth=new Date(date+'T12:00:00').getMonth();calYear=new Date(date+'T12:00:00').getFullYear();
@@ -712,6 +725,16 @@ function renderSummary(){
   document.getElementById('sm-tipout').textContent=fmt2(tipout);
   document.getElementById('sm-sales2').textContent=sales>0?fmt2(sales):'—';
   document.getElementById('sm-hours').textContent=hours.toFixed(1)+'h';
+  const parkData=data.reduce((a,s)=>a+(s.parking||0),0);
+  document.getElementById('sm-parking').textContent=fmt2(parkData);
+  const nw=new Date();
+  const monStart=new Date(nw);const wd=nw.getDay();monStart.setDate(nw.getDate()-(wd===0?6:wd-1));monStart.setHours(0,0,0,0);
+  const parkWeek=shifts.filter(s=>new Date(s.date+'T12:00:00')>=monStart).reduce((a,s)=>a+(s.parking||0),0);
+  const parkMonth=shifts.filter(s=>{const d=new Date(s.date+'T12:00:00');return d.getMonth()===nw.getMonth()&&d.getFullYear()===nw.getFullYear();}).reduce((a,s)=>a+(s.parking||0),0);
+  const parkYear=shifts.filter(s=>new Date(s.date+'T12:00:00').getFullYear()===nw.getFullYear()).reduce((a,s)=>a+(s.parking||0),0);
+  document.getElementById('park-week').textContent=fmt2(parkWeek);
+  document.getElementById('park-month').textContent=fmt2(parkMonth);
+  document.getElementById('park-year').textContent=fmt2(parkYear);
   document.getElementById('sm-net2').textContent=fmt2(n);
   renderBestWorst(data);
   renderCharts();
