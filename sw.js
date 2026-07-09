@@ -1,15 +1,22 @@
-const CACHE = 'tiptracker-v1';
+const CACHE = 'tiptracker-v2';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png',
+  './',
+  './index.html',
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png',
   'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js'
 ];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+  e.waitUntil(
+    caches.open(CACHE).then(c =>
+      // cache each asset independently so one 404 can't abort the whole install
+      Promise.all(ASSETS.map(url =>
+        c.add(url).catch(err => console.warn('SW cache skip:', url, err))
+      ))
+    )
+  );
   self.skipWaiting();
 });
 
@@ -22,6 +29,6 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request).catch(() => caches.match('/index.html')))
+    caches.match(e.request).then(cached => cached || fetch(e.request).catch(() => caches.match('./index.html')))
   );
 });

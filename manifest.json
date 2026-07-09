@@ -2,7 +2,7 @@
   "name": "Tip Tracker",
   "short_name": "Tip Tracker",
   "description": "Track your daily tips, sales, and earnings",
-  "start_url": "/tip-tracker/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#111111",
   "theme_color": "#111111",
