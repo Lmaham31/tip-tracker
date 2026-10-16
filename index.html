@@ -236,7 +236,7 @@
   <!-- LOG SHIFT -->
   <div class="section" id="tab-log">
     <div class="card">
-      <div class="card-label">New shift</div>
+      <div class="card-label" id="log-label">New shift</div>
       <div class="field"><label>Date</label><input type="date" id="s-date"/></div>
       <div class="field"><label>Hours worked</label><input type="number" id="s-hours" placeholder="0.0" step="0.25" min="0" inputmode="decimal" oninput="livePreview()"/></div>
       <div class="field"><label>Total sales / ring ($)</label><input type="number" id="s-sales" placeholder="0.00" step="0.01" min="0" inputmode="decimal" oninput="livePreview()"/></div>
@@ -244,6 +244,7 @@
       <div class="field"><label>Credit card tips ($)</label><input type="number" id="s-credit" placeholder="0.00" step="0.01" min="0" inputmode="decimal" oninput="livePreview()"/></div>
       <div class="field"><label>Tip-out ($)</label><input type="number" id="s-tipout" placeholder="0.00" step="0.01" min="0" inputmode="decimal" oninput="livePreview()"/></div>
       <div class="field"><label>Base hourly wage ($/hr)</label><input type="number" id="s-wage" placeholder="0.00" step="0.01" min="0" inputmode="decimal" oninput="livePreview()"/></div>
+      <div class="field"><label>Auto-grat / service charge included above ($)</label><input type="number" id="s-autograt" placeholder="0.00" step="0.01" min="0" inputmode="decimal"/></div>
       <div class="field"><label>🅿️ Parking cost ($)</label><input type="number" id="s-parking" placeholder="0.00" step="0.01" min="0" inputmode="decimal"/></div>
       <div class="preview-box" id="log-preview">
         <div class="preview-row"><span style="color:var(--text2)">Gross tips</span><span id="pv-gross">—</span></div>
@@ -253,7 +254,8 @@
         <div class="preview-row"><span style="color:var(--text2)">Net take-home</span><span id="pv-net" style="font-weight:600">—</span></div>
         <div class="preview-row"><span style="color:var(--text2)">Per hour</span><span id="pv-hr">—</span></div>
       </div>
-      <button class="btn-save" onclick="logShift()">Save shift</button>
+      <button class="btn-save" id="btn-save" onclick="logShift()">Save shift</button>
+      <button class="modal-close" id="btn-cancel-edit" onclick="cancelEdit()" style="display:none;margin-top:8px;">Cancel edit</button>
     </div>
   </div>
 
@@ -265,6 +267,13 @@
         <div class="sync-status" id="sync-status">Tap sync to load your shifts</div>
       </div>
       <button class="sync-btn" onclick="syncSchedule()">Sync</button>
+    </div>
+    <div class="card" id="proj-card" style="display:none;">
+      <div class="card-label">📈 Projected earnings</div>
+      <div class="sum-row"><span style="color:var(--text2)">This week</span><span id="proj-week" style="font-weight:600">—</span></div>
+      <div style="font-size:11px;color:var(--text2);margin:-2px 0 6px;" id="proj-week-detail"></div>
+      <div class="sum-row"><span style="color:var(--text2)">Next 14 days</span><span id="proj-14" style="font-weight:600">—</span></div>
+      <div style="font-size:11px;color:var(--text2);margin-top:8px;line-height:1.4;" id="proj-note"></div>
     </div>
     <div class="card">
       <div class="card-label">Upcoming shifts</div>
@@ -322,6 +331,32 @@
       <div class="sum-row"><span style="color:var(--text2)">🅿️ Parking paid</span><span id="sm-parking" style="color:var(--red)">$0.00</span></div>
       <div class="sum-row total"><span>Net take-home</span><span id="sm-net2">$0.00</span></div>
     </div>
+    <div class="card" style="margin-top:14px;">
+      <div class="card-label" id="nt-label">🧾 No Tax on Tips</div>
+      <div class="sum-row"><span style="color:var(--text2)">Qualified tips this year</span><span id="nt-qual" style="font-weight:600">$0.00</span></div>
+      <div style="height:8px;border-radius:4px;background:var(--border);overflow:hidden;margin:6px 0 4px;"><div id="nt-bar" style="height:100%;width:0%;background:var(--green);"></div></div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:8px;" id="nt-cap">0% of $25,000 cap</div>
+      <div class="sum-row"><span style="color:var(--text2)">Auto-grat excluded</span><span id="nt-auto">$0.00</span></div>
+      <div class="sum-row"><span style="color:var(--text2)">Tax bracket</span><span><select id="nt-rate" onchange="setTaxRate(this.value)" style="font-family:inherit;font-size:13px;background:transparent;color:var(--text);border:0.5px solid var(--border2);border-radius:6px;padding:2px 4px;"><option value="0.10">10%</option><option value="0.12">12%</option><option value="0.22">22%</option></select></span></div>
+      <div class="sum-row total"><span>Est. federal tax saved</span><span id="nt-saved" style="color:var(--green)">$0.00</span></div>
+      <div style="font-size:11px;color:var(--text2);margin-top:8px;line-height:1.4;">Estimate only, not tax advice. Lowers federal income tax, not Social Security/Medicare. Phases out above $150k income.</div>
+    </div>
+    <div class="card" style="margin-top:14px;">
+      <div class="card-label">💾 Your data</div>
+      <div style="display:flex;gap:8px;">
+        <button class="modal-close" style="margin-top:0;font-size:14px;" onclick="exportBackup()">Backup</button>
+        <button class="modal-close" style="margin-top:0;font-size:14px;" onclick="document.getElementById('import-file').click()">Restore</button>
+        <button class="modal-close" style="margin-top:0;font-size:14px;" onclick="exportCSV()">Export CSV</button>
+      </div>
+      <input type="file" id="import-file" accept=".json,application/json" style="display:none" onchange="importBackup(this)"/>
+      <div id="backup-status" style="font-size:12px;color:var(--text2);margin-top:10px;">—</div>
+    </div>
+    <div class="card" style="margin-top:14px;">
+      <div class="card-label">⚙️ Settings</div>
+      <div class="field"><label>Google Apps Script URL (Sheets + schedule sync)</label><input type="url" id="set-sheets-url" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off" autocapitalize="off" spellcheck="false"/></div>
+      <button class="modal-close" style="margin-top:4px;font-size:14px;" onclick="saveSheetsUrl()">Save</button>
+      <div id="set-status" style="font-size:12px;color:var(--text2);margin-top:10px;">—</div>
+    </div>
   </div>
 
   <!-- WORDS -->
@@ -350,6 +385,7 @@
     <div class="modal-row" id="m-sales-row"><span style="color:var(--text2)">Sales / ring</span><span id="m-sales">—</span></div>
     <div class="modal-row" id="m-pct-row"><span style="color:var(--text2)">Tip %</span><span id="m-pct">—</span></div>
     <div class="modal-row"><span style="color:var(--text2)">Hours worked</span><span id="m-hours">—</span></div>
+    <div class="modal-row" id="m-autograt-row"><span style="color:var(--text2)">Auto-grat (not tax-free)</span><span id="m-autograt">—</span></div>
     <div class="modal-row" id="m-parking-row"><span style="color:var(--text2)">🅿️ Parking</span><span id="m-parking" style="color:var(--red)">—</span></div>
     <div class="modal-row" id="m-wage-row"><span style="color:var(--text2)">Base hourly wage</span><span id="m-wage">—</span></div>
     <div class="modal-row" id="m-basepay-row"><span style="color:var(--text2)">Base pay earned</span><span id="m-basepay">—</span></div>
@@ -357,6 +393,7 @@
     <div class="modal-row"><span style="color:var(--text2)">Total earned (tips + base)</span><span id="m-total" style="font-weight:600;color:var(--green)">—</span></div>
     <div class="modal-row noborder"><span style="color:var(--text2)">Total per hour</span><span id="m-hr">—</span></div>
     <button class="modal-close" onclick="document.getElementById('modal').classList.remove('open')">Close</button>
+    <button class="modal-close" onclick="editFromModal()">Edit this shift</button>
     <button class="modal-del" onclick="deleteFromModal()">Delete this shift</button>
   </div>
 </div>
@@ -379,6 +416,8 @@ function saveData(){try{localStorage.setItem(KEY,JSON.stringify(shifts));}catch(
 const fmt2=n=>'$'+n.toFixed(2);
 const fmtk=n=>n>=1000?'$'+(n/1000).toFixed(1)+'k':'$'+Math.round(n);
 const netOf=s=>s.cash+s.credit-s.tipout;
+// "No Tax on Tips" (2025-2028): voluntary tips only; auto-grat/service charges excluded
+const qualifiedOf=s=>Math.max(0,netOf(s)-(s.autograt||0));
 const tipPct=s=>s.sales>0?(s.cash+s.credit)/s.sales*100:null;
 const pctClass=p=>p===null?'':p>=20?'great':p>=15?'ok':'low';
 const fmtDate=ds=>{const d=new Date(ds+'T12:00:00');return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});};
@@ -551,6 +590,9 @@ function openModal(shift){
   document.getElementById('m-pct-row').style.display=shift.sales>0?'flex':'none';
   document.getElementById('m-sales-row').style.display=shift.sales>0?'flex':'none';
   document.getElementById('m-hours').textContent=shift.hours>0?shift.hours+'h':'—';
+  const autograt=shift.autograt||0;
+  document.getElementById('m-autograt-row').style.display=autograt>0?'flex':'none';
+  document.getElementById('m-autograt').textContent=autograt>0?fmt2(autograt):'—';
   const parking=shift.parking||0;
   document.getElementById('m-parking-row').style.display=parking>0?'flex':'none';
   document.getElementById('m-parking').textContent=parking>0?'-'+fmt2(parking):'—';
@@ -568,6 +610,28 @@ function openModal(shift){
 }
 function closeModalBg(e){if(e.target===document.getElementById('modal'))document.getElementById('modal').classList.remove('open');}
 function deleteFromModal(){if(!modalShiftId)return;shifts=shifts.filter(s=>s.id!==modalShiftId);saveData();renderCal();renderSummary();document.getElementById('modal').classList.remove('open');}
+let editingId=null;
+const LOG_FIELDS={hours:'s-hours',sales:'s-sales',cash:'s-cash',credit:'s-credit',tipout:'s-tipout',wage:'s-wage',parking:'s-parking',autograt:'s-autograt'};
+function setEditMode(on){
+  document.getElementById('log-label').textContent=on?'Edit shift':'New shift';
+  document.getElementById('btn-save').textContent=on?'Update shift':'Save shift';
+  document.getElementById('btn-cancel-edit').style.display=on?'block':'none';
+}
+function editFromModal(){
+  const shift=shifts.find(s=>s.id===modalShiftId);if(!shift)return;
+  editingId=shift.id;
+  document.getElementById('s-date').value=shift.date;
+  Object.entries(LOG_FIELDS).forEach(([k,id])=>{document.getElementById(id).value=shift[k]?shift[k]:'';});
+  setEditMode(true);
+  document.getElementById('modal').classList.remove('open');
+  switchTab('log');livePreview();
+}
+function cancelEdit(){
+  editingId=null;setEditMode(false);
+  Object.values(LOG_FIELDS).forEach(id=>document.getElementById(id).value='');
+  document.getElementById('log-preview').style.display='none';
+  document.getElementById('s-date').value=now.toISOString().slice(0,10);
+}
 function openLogForDate(ds){document.getElementById('s-date').value=ds;switchTab('log');}
 
 function livePreview(){
@@ -609,14 +673,18 @@ function logShift(){
   const tipout=parseFloat(document.getElementById('s-tipout').value)||0;
   if(cash+credit===0){alert('Enter at least one tip amount.');return;}
   const wage=parseFloat(document.getElementById('s-wage').value)||0;
-  const idx=shifts.findIndex(s=>s.date===date);
   const parking=parseFloat(document.getElementById('s-parking').value)||0;
-  const entry={id:Date.now(),date,hours,sales,cash,credit,tipout,wage,parking};
+  const autograt=parseFloat(document.getElementById('s-autograt').value)||0;
+  // editing: drop the original by id (date may have changed); otherwise same-date entry gets overwritten
+  if(editingId!==null)shifts=shifts.filter(s=>s.id!==editingId);
+  const idx=shifts.findIndex(s=>s.date===date);
+  const entry={id:editingId!==null?editingId:Date.now(),date,hours,sales,cash,credit,tipout,wage,parking,autograt};
   if(idx>=0)shifts[idx]=entry;else shifts.push(entry);
+  editingId=null;setEditMode(false);
   shifts.sort((a,b)=>b.date.localeCompare(a.date));
   saveData();
   syncToSheets(entry);
-  ['s-hours','s-sales','s-cash','s-credit','s-tipout','s-wage','s-parking'].forEach(id=>document.getElementById(id).value='');
+  ['s-hours','s-sales','s-cash','s-credit','s-tipout','s-wage','s-parking','s-autograt'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('log-preview').style.display='none';
   document.getElementById('s-date').value=now.toISOString().slice(0,10);
   calMonth=new Date(date+'T12:00:00').getMonth();calYear=new Date(date+'T12:00:00').getFullYear();
@@ -843,16 +911,33 @@ function switchTab(name){
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['cal','log','schedule','summary','words'][i]===name));
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
-  if(name==='summary')renderSummary();
+  if(name==='summary'){renderSummary();renderBackupStatus();renderNoTax();renderSettings();}
   if(name==='schedule')renderSchedule();
   if(name==='words')renderWords();
 }
 
-const SHEETS_URL = "https://script.google.com/macros/s/AKfycbxAam-bRgC5Hd2WjyXVoV7h5ICGZfB8dkg1Ji5Q6K4xDNoi3S4xUNeVaD2KX_TG0NDl/exec";
+// Apps Script URL lives only in localStorage (set in Summary → Settings) so it never ships in the repo
+const SHEETS_KEY='tiptracker_sheets_url';
+const SHEETS_RE=/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/;
+function getSheetsUrl(){try{return localStorage.getItem(SHEETS_KEY)||'';}catch(e){return '';}}
+function renderSettings(){
+  const url=getSheetsUrl(),el=document.getElementById('set-status');if(!el)return;
+  document.getElementById('set-sheets-url').value=url;
+  el.textContent=url?'✓ Connected — shifts sync to Sheets, schedule sync enabled':'Not set — Sheets and schedule sync are off';
+  el.style.color=url?'var(--green)':'var(--amber)';
+}
+function saveSheetsUrl(){
+  const v=document.getElementById('set-sheets-url').value.trim();
+  if(v&&!SHEETS_RE.test(v)){const el=document.getElementById('set-status');el.textContent='That doesn’t look like an Apps Script /exec URL';el.style.color='var(--red)';return;}
+  try{v?localStorage.setItem(SHEETS_KEY,v):localStorage.removeItem(SHEETS_KEY);}catch(e){}
+  renderSettings();
+}
 
 async function syncToSheets(entry) {
   try {
-    await fetch(SHEETS_URL, {
+    const url = getSheetsUrl();
+    if (!url) return;
+    await fetch(url, {
       method: "POST",
       mode: "no-cors",
       headers: { "Content-Type": "application/json" },
@@ -864,8 +949,7 @@ async function syncToSheets(entry) {
 }
 
 // SCHEDULE SYNC
-const ICS_URL = 'https://app.7shifts.com/calendar/schedule/129910/38a39b4d8d18245e6e4a67060c5069cd.ics?u=10914204';
-const ICS_PROXY = 'https://corsproxy.io/?';
+// 7shifts ICS is fetched server-side by the Apps Script (doGet ?action=schedule) — no CORS proxy needed
 let scheduledShifts = [];
 
 function parseICS(text) {
@@ -912,8 +996,11 @@ function fmtTime(d) {
 async function syncSchedule() {
   document.getElementById('sync-status').textContent = 'Syncing...';
   try {
-    const res = await fetch(ICS_PROXY + encodeURIComponent(ICS_URL));
+    const url = getSheetsUrl();
+    if (!url) { document.getElementById('sync-status').textContent = 'Add your Apps Script URL in Summary → Settings'; return; }
+    const res = await fetch(url + '?action=schedule');
     const text = await res.text();
+    if (!res.ok || !text.includes('BEGIN:VCALENDAR')) throw new Error('Bad schedule response');
     const events = parseICS(text);
     const nowTime = new Date();
     scheduledShifts = events
@@ -960,8 +1047,11 @@ function renderSchedule() {
   const el = document.getElementById('schedule-list');
   if (!scheduledShifts.length) {
     el.innerHTML = '<div class="empty-state">No upcoming shifts found</div>';
+    renderProjection(null);
     return;
   }
+  const rates = getHourlyRates();
+  renderProjection(rates);
   el.innerHTML = scheduledShifts.map(s => {
     const dateStr = s.start ? s.start.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'}) : '—';
     const hrs = hoursFromShift(s);
@@ -969,7 +1059,7 @@ function renderSchedule() {
     return `<div class="sched-item">
       <div>
         <div class="sched-date">${dateStr}</div>
-        <div class="sched-time">${fmtTime(s.start)} – ${fmtTime(s.end)} · ${hrs}h</div>
+        <div class="sched-time">${fmtTime(s.start)} – ${fmtTime(s.end)} · ${hrs}h${!alreadyLogged&&rates?` · ~${fmt2(projectShift(s,rates))} est.`:''}</div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;">
         ${alreadyLogged ? '<span class="sched-badge" style="background:var(--green-bg);color:var(--green);">✓ Logged</span>' : `<button onclick="prefillShift('${s.start?.toLocaleDateString('en-CA')}', ${hrs})" style="padding:5px 10px;font-size:11px;border:0.5px solid var(--border2);border-radius:20px;background:transparent;color:var(--text);cursor:pointer;font-family:inherit;">Log tips</button>`}
@@ -978,11 +1068,121 @@ function renderSchedule() {
   }).join('');
 }
 
+// PROJECTED EARNINGS — estimate from your own avg total $/hr (net tips + base) per weekday
+function getHourlyRates() {
+  const withHours = shifts.filter(s => s.hours > 0);
+  if (!withHours.length) return null;
+  const pay = s => netOf(s) + (s.wage > 0 ? s.wage * s.hours : 0);
+  const rateOf = list => list.reduce((a, s) => a + pay(s), 0) / list.reduce((a, s) => a + s.hours, 0);
+  const overall = rateOf(withHours);
+  const byDow = [];
+  for (let d = 0; d < 7; d++) {
+    const day = withHours.filter(s => new Date(s.date + 'T12:00:00').getDay() === d);
+    byDow[d] = day.length >= 2 ? rateOf(day) : overall;
+  }
+  return { overall, byDow, count: withHours.length };
+}
+function projectShift(s, rates) {
+  return s.start ? rates.byDow[s.start.getDay()] * hoursFromShift(s) : 0;
+}
+function renderProjection(rates) {
+  const card = document.getElementById('proj-card');
+  if (!rates || !scheduledShifts.length) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  const today = new Date().toLocaleDateString('en-CA');
+  const thisWeek = weekKey(today);
+  const upcoming = scheduledShifts.filter(s => s.start && !getShiftForDate(s.start.toLocaleDateString('en-CA')));
+  const projWeekList = upcoming.filter(s => weekKey(s.start.toLocaleDateString('en-CA')) === thisWeek);
+  const projWeek = projWeekList.reduce((a, s) => a + projectShift(s, rates), 0);
+  const earnedWeek = shifts.filter(s => weekKey(s.date) === thisWeek)
+    .reduce((a, s) => a + netOf(s) + (s.wage > 0 && s.hours > 0 ? s.wage * s.hours : 0), 0);
+  const cutoff = Date.now() + 14 * 86400000;
+  const proj14 = upcoming.filter(s => s.start.getTime() <= cutoff).reduce((a, s) => a + projectShift(s, rates), 0);
+  document.getElementById('proj-week').textContent = '~' + fmt2(earnedWeek + projWeek);
+  document.getElementById('proj-week-detail').textContent = `${fmt2(earnedWeek)} earned + ~${fmt2(projWeek)} projected (${projWeekList.length} shift${projWeekList.length === 1 ? '' : 's'} left)`;
+  document.getElementById('proj-14').textContent = '~' + fmt2(proj14);
+  document.getElementById('proj-note').textContent = `Estimate based on your avg $${rates.overall.toFixed(2)}/hr across ${rates.count} logged shift${rates.count === 1 ? '' : 's'}, by weekday where you have 2+ shifts. Not real earnings.`;
+}
+
 function prefillShift(dateStr, hours) {
   document.getElementById('s-date').value = dateStr;
   document.getElementById('s-hours').value = hours;
   switchTab('log');
   livePreview();
+}
+
+// NO TAX ON TIPS
+const NT_CAP=25000, RATE_KEY='tiptracker_tax_rate';
+function getTaxRate(){try{return parseFloat(localStorage.getItem(RATE_KEY))||0.12;}catch(e){return 0.12;}}
+function setTaxRate(v){try{localStorage.setItem(RATE_KEY,v);}catch(e){}renderNoTax();}
+function renderNoTax(){
+  const el=document.getElementById('nt-qual');if(!el)return;
+  const yr=new Date().getFullYear();
+  const ytd=shifts.filter(s=>s.date.startsWith(yr+'-'));
+  const qual=ytd.reduce((a,s)=>a+qualifiedOf(s),0);
+  const auto=ytd.reduce((a,s)=>a+(s.autograt||0),0);
+  const deduct=Math.min(qual,NT_CAP), rate=getTaxRate();
+  const pct=Math.min(100,qual/NT_CAP*100);
+  document.getElementById('nt-label').textContent=`🧾 No Tax on Tips (${yr})`;
+  el.textContent=fmt2(qual);
+  document.getElementById('nt-bar').style.width=pct.toFixed(1)+'%';
+  document.getElementById('nt-cap').textContent=qual>=NT_CAP?`Cap reached, ${fmt2(qual-NT_CAP)} over`:`${pct.toFixed(1)}% of $25,000 cap`;
+  document.getElementById('nt-auto').textContent=fmt2(auto);
+  document.getElementById('nt-rate').value=rate.toFixed(2);
+  document.getElementById('nt-saved').textContent=fmt2(deduct*rate);
+}
+
+// BACKUP / EXPORT
+const BACKUP_KEY='tiptracker_last_backup';
+const NUM_FIELDS=['hours','sales','cash','credit','tipout','wage','parking','autograt'];
+function downloadFile(name,text,type){
+  const url=URL.createObjectURL(new Blob([text],{type}));
+  const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function todayStr(){return new Date().toLocaleDateString('en-CA');}
+function renderBackupStatus(){
+  const el=document.getElementById('backup-status');if(!el)return;
+  let last=null;try{last=localStorage.getItem(BACKUP_KEY);}catch(e){}
+  if(!last){el.textContent=`${shifts.length} shifts saved on this device · never backed up`;el.style.color=shifts.length?'var(--red)':'var(--text2)';return;}
+  const days=Math.floor((Date.now()-new Date(last))/86400000);
+  el.textContent=`${shifts.length} shifts · last backup ${days===0?'today':days+'d ago'}`;
+  el.style.color=days>14?'var(--amber)':'var(--text2)';
+}
+function exportBackup(){
+  downloadFile(`tiptracker-backup-${todayStr()}.json`,JSON.stringify({app:'tiptracker',version:2,exported:new Date().toISOString(),sheetsUrl:getSheetsUrl(),shifts},null,2),'application/json');
+  try{localStorage.setItem(BACKUP_KEY,new Date().toISOString());}catch(e){}
+  renderBackupStatus();
+}
+function exportCSV(){
+  const head=['date','hours','sales','cash_tips','credit_tips','gross_tips','tipout','net_tips','wage','base_pay','total_earned','parking','autograt','qualified_tips'];
+  const rows=[...shifts].sort((a,b)=>a.date.localeCompare(b.date)).map(s=>{
+    const gross=s.cash+s.credit,net=netOf(s),base=s.hours>0&&s.wage>0?s.wage*s.hours:0;
+    return [s.date,s.hours,s.sales,s.cash,s.credit,gross,s.tipout,net,s.wage||0,base,net+base,s.parking||0,s.autograt||0,qualifiedOf(s)]
+      .map(v=>typeof v==='number'?(Math.round(v*100)/100):v).join(',');
+  });
+  downloadFile(`tiptracker-${todayStr()}.csv`,[head.join(','),...rows].join('\n'),'text/csv');
+}
+function importBackup(input){
+  const file=input.files[0];input.value='';if(!file)return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    let incoming;
+    try{const d=JSON.parse(reader.result);incoming=Array.isArray(d)?d:d.shifts;if(d&&typeof d.sheetsUrl==='string'&&SHEETS_RE.test(d.sheetsUrl)&&!getSheetsUrl()){try{localStorage.setItem(SHEETS_KEY,d.sheetsUrl);}catch(e){}renderSettings();}}catch(e){alert("That file isn't a valid backup.");return;}
+    if(!Array.isArray(incoming)){alert("That file isn't a valid backup.");return;}
+    const clean=incoming.filter(s=>s&&/^\d{4}-\d{2}-\d{2}$/.test(s.date)).map(s=>{
+      const o={id:Number(s.id)||Date.now()+Math.random(),date:s.date};
+      NUM_FIELDS.forEach(k=>{o[k]=parseFloat(s[k])||0;});return o;
+    });
+    if(!clean.length){alert('No shifts found in that file.');return;}
+    const byDate=new Map(shifts.map(s=>[s.date,s]));
+    const overwritten=clean.filter(s=>byDate.has(s.date)).length;
+    if(!confirm(`Restore ${clean.length} shifts? ${overwritten} existing day(s) will be replaced by the backup version. Nothing else is deleted.`))return;
+    clean.forEach(s=>byDate.set(s.date,s));
+    shifts=[...byDate.values()].sort((a,b)=>b.date.localeCompare(a.date));
+    saveData();renderCal();renderSummary();renderBackupStatus();renderNoTax();
+  };
+  reader.readAsText(file);
 }
 
 // SERVICE WORKER

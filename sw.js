@@ -1,4 +1,4 @@
-const CACHE = 'tiptracker-v2';
+const CACHE = 'tiptracker-v7';
 const ASSETS = [
   './',
   './index.html',
