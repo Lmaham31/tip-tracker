@@ -212,6 +212,7 @@
   .words-body{font-size:14px;line-height:1.65;color:var(--text);}
   .words-body strong{color:var(--green);font-weight:600;}
   .words-body .neg{color:var(--red);}
+  .words-body .pos{color:var(--green);}
 </style>
 </head>
 <body>
@@ -969,6 +970,8 @@ function renderWords(){
     blocks.push({icon:'🗓️',title:'Year to Date',body:ytdText});
   }
 
+  blocks.push(...tagInsights());
+
   el.innerHTML=blocks.map(b=>`
     <div class="words-block">
       <div class="words-block-title"><span class="words-block-icon">${b.icon}</span>${b.title}</div>
@@ -1440,6 +1443,58 @@ async function loadHeaderWx(force){
 }
 setInterval(()=>loadHeaderWx(),HWX_TTL);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')loadHeaderWx();});
+
+// WORDS: plain-English patterns from section/event/weather (all time, 3+ shifts per group)
+function tagInsights(){
+  const data=shifts.filter(s=>s.hours>0);
+  if(!data.length)return [];
+  const pay=s=>netOf(s)+(s.wage>0?s.wage*s.hours:0);
+  const rateOf=list=>list.reduce((a,s)=>a+pay(s),0)/list.reduce((a,s)=>a+s.hours,0);
+  const avg=rateOf(data), MIN=3;
+  const groups=keyFn=>{
+    const m=new Map();data.forEach(s=>keyFn(s).forEach(k=>{if(!m.has(k))m.set(k,[]);m.get(k).push(s);}));
+    return [...m].filter(([,l])=>l.length>=MIN).map(([k,l])=>({k,n:l.length,rate:rateOf(l)})).sort((a,b)=>b.rate-a.rate);
+  };
+  const $=v=>'$'+Math.abs(v).toFixed(2);
+  const vs=r=>{const d=r.rate-avg;return Math.abs(d)<0.5?'about the same as your average':(d>0?`<span class="pos">${$(d)}/hr more</span>`:`<span class="neg">${$(d)}/hr less</span>`)+' than your average';};
+  const pct=r=>Math.round(Math.abs(r.rate/avg-1)*100);
+  const out=[];
+
+  const secs=groups(s=>s.section?[s.section]:[]);
+  if(secs.length){
+    const top=secs[0],bot=secs[secs.length-1];
+    let t=`Working <strong>${esc(top.k)}</strong> pays <strong>${$(top.rate)}/hr</strong> (${top.n} shifts), ${vs(top)}.`;
+    if(secs.length>1)t+=` Your weakest section is <b>${esc(bot.k)}</b> at ${$(bot.rate)}/hr, ${vs(bot)}.`;
+    if(secs.length>1&&top.rate-bot.rate>=1)t+=` That's a <strong>${$(top.rate-bot.rate)}/hr</strong> gap, or about <strong>${$((top.rate-bot.rate)*6)}</strong> on a 6-hour shift.`;
+    out.push({icon:'📍',title:'Where you earn most',body:t});
+  }
+
+  const evs=groups(s=>s.tags||[]);
+  if(evs.length){
+    const top=evs[0],bot=evs[evs.length-1];
+    let t=`<strong>${esc(top.k)}</strong> is your best tag at <strong>${$(top.rate)}/hr</strong>, ${pct(top)}% ${top.rate>=avg?'above':'below'} normal (${top.n} shifts).`;
+    if(evs.length>1&&bot.rate<avg)t+=` <b>${esc(bot.k)}</b> shifts are your weakest at ${$(bot.rate)}/hr, ${pct(bot)}% below normal.`;
+    const more=evs.slice(1,4).filter(r=>r.rate>avg&&r.k!==bot.k);
+    if(more.length)t+=` Also above average: ${more.map(r=>`${esc(r.k)} (${$(r.rate)})`).join(', ')}.`;
+    out.push({icon:'🎉',title:'Best events',body:t});
+  }
+
+  const wet=data.filter(s=>s.weather&&['rain','snow','storm'].includes(s.weather.cat));
+  const dry=data.filter(s=>s.weather&&!['rain','snow','storm'].includes(s.weather.cat));
+  if(wet.length>=MIN&&dry.length>=MIN){
+    const d=rateOf(wet)-rateOf(dry);
+    const t=Math.abs(d)<0.5?`Rain or snow barely changes your pay: ${$(rateOf(wet))}/hr wet vs ${$(rateOf(dry))}/hr dry.`
+      :`Rainy/snowy shifts pay ${d<0?`<span class="neg">${$(d)}/hr less</span>`:`<span class="pos">${$(d)}/hr more</span>`} than dry ones (${$(rateOf(wet))} vs ${$(rateOf(dry))}, ${wet.length} wet / ${dry.length} dry shifts).`;
+    out.push({icon:'🌧️',title:'Weather',body:t});
+  }
+
+  if(!out.length){
+    out.push({icon:'🔍',title:'Patterns',body:'Tag a section and events when you log, and set a work location in ⚙️ for weather. Once any tag has 3+ shifts, this will tell you where and when you earn the most.'});
+  } else {
+    out[out.length-1].body+=' <span style="font-size:11px;color:var(--text2)">(all time, groups with 3+ shifts)</span>';
+  }
+  return out;
+}
 
 // WHAT PAYS BEST — $/hr (net tips + base) grouped by section, event and weather
 function renderBest(){
