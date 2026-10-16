@@ -42,6 +42,7 @@
   .header-title{font-size:17px;font-weight:600;letter-spacing:0.01em;}
   .gear-btn{background:transparent;border:none;font-size:20px;line-height:1;padding:2px;cursor:pointer;opacity:.75;-webkit-tap-highlight-color:transparent;}
   .gear-btn.active{opacity:1;transform:rotate(45deg);transition:transform .2s;}
+  .header-wx{flex:1;text-align:center;font-size:14px;font-weight:500;color:rgba(255,255,255,.85);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 10px;}
   .header-dot{width:8px;height:8px;border-radius:50%;background:#4CAF50;}
 
   /* TAB BAR */
@@ -63,6 +64,23 @@
   .field label{display:block;font-size:13px;color:var(--text2);margin-bottom:4px;}
   .field input{width:100%;padding:10px 12px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);font-size:16px;font-family:inherit;background:var(--bg);color:var(--text);-webkit-appearance:none;}
   .field input:focus{outline:none;border-color:var(--text2);}
+  .field textarea{width:100%;padding:10px 12px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--bg);color:var(--text);resize:vertical;}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;}
+  .chip{padding:6px 12px;border:0.5px solid var(--border2);border-radius:16px;font-size:12px;background:transparent;color:var(--text);cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;}
+  .chip.on{background:var(--text);color:var(--bg);border-color:var(--text);}
+  .dd-select,.dd-btn{width:100%;padding:10px 12px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);font-size:16px;font-family:inherit;background:var(--bg);color:var(--text);text-align:left;cursor:pointer;}
+  .dd-btn{-webkit-appearance:none;}
+  .dd-btn{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .dd-btn span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .dd-panel{border:0.5px solid var(--border2);border-radius:var(--radius-sm);margin-top:6px;max-height:260px;overflow-y:auto;background:var(--bg);}
+  .field .dd-row{display:flex;align-items:center;gap:10px;padding:10px 12px;margin:0;font-size:14px;color:var(--text);border-bottom:0.5px solid var(--border);cursor:pointer;}
+  .field .dd-row input{-webkit-appearance:checkbox;appearance:auto;width:18px;height:18px;flex:none;padding:0;margin:0;border:none;accent-color:var(--text);}
+  .dd-count{margin-left:auto;font-size:11px;color:var(--text2);}
+  .dd-done{position:sticky;bottom:0;width:100%;padding:10px;border:none;border-top:0.5px solid var(--border2);background:var(--bg2);color:var(--text);font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;}
+  .add-row{display:flex;gap:8px;margin-top:6px;}
+  .field .add-row input{flex:1;font-size:15px;padding:8px 10px;}
+  .add-btn{padding:8px 14px;border:none;border-radius:var(--radius-sm);background:var(--text);color:var(--bg);font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;}
+  .best-h{font-size:11px;font-weight:600;color:var(--text2);margin:10px 0 2px;}
   .btn-save{width:100%;padding:14px;background:var(--text);color:var(--bg);border:none;border-radius:var(--radius-sm);font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:6px;-webkit-tap-highlight-color:transparent;}
   .btn-save:active{opacity:.8;}
 
@@ -141,6 +159,12 @@
   .preview-row{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;}
   .pct-legend{display:flex;gap:12px;font-size:10px;margin-top:10px;flex-wrap:wrap;}
   .pct-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:3px;vertical-align:middle;}
+  .nudge{background:var(--bg);border:0.5px solid var(--amber);border-radius:var(--radius);padding:10px 12px;margin-bottom:10px;}
+  .nudge-title{font-size:11px;font-weight:600;color:var(--amber);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
+  .nudge-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 0;font-size:13px;}
+  .nudge-row+.nudge-row{border-top:0.5px solid var(--border);}
+  .nudge-btn{padding:5px 12px;font-size:12px;border:0.5px solid var(--border2);border-radius:20px;background:var(--text);color:var(--bg);cursor:pointer;font-family:inherit;}
+  .nudge-x{background:transparent;border:none;color:var(--text2);font-size:15px;cursor:pointer;padding:2px 6px;}
   .empty-state{text-align:center;padding:32px 16px;color:var(--text2);font-size:14px;}
   .cal-day.scheduled{background:rgba(100,100,200,0.08);border-color:rgba(100,100,200,0.25);}
   .cal-scheduled{font-size:9px;color:#5555cc;font-weight:500;margin-top:1px;}
@@ -194,6 +218,7 @@
 
 <div class="header">
   <div class="header-title">Tip Tracker</div>
+  <div class="header-wx" id="header-wx"></div>
   <div style="display:flex;align-items:center;gap:14px;">
     <div class="header-dot"></div>
     <button class="gear-btn" id="gear-btn" onclick="toggleSettings()" aria-label="Settings">⚙️</button>
@@ -212,6 +237,7 @@
 
   <!-- CALENDAR -->
   <div class="section active" id="tab-cal">
+    <div id="nudge" style="display:none;"></div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <div class="cal-view-toggle">
         <button class="cal-view-btn active" id="btn-month-view" onclick="setCalView('month')">Month</button>
@@ -251,6 +277,13 @@
       <div class="field"><label>Base hourly wage ($/hr)</label><input type="number" id="s-wage" placeholder="0.00" step="0.01" min="0" inputmode="decimal" oninput="livePreview()"/></div>
       <div class="field"><label>Auto-grat / service charge included above ($)</label><input type="number" id="s-autograt" placeholder="0.00" step="0.01" min="0" inputmode="decimal"/></div>
       <div class="field"><label>🅿️ Parking cost ($)</label><input type="number" id="s-parking" placeholder="0.00" step="0.01" min="0" inputmode="decimal"/></div>
+      <div class="field"><label>Section</label><select class="dd-select" id="sel-section" onchange="onSectionPick(this)"></select>
+        <div class="add-row" id="add-section-row" style="display:none;"><input type="text" id="add-section" placeholder="New section name" onkeydown="if(event.key==='Enter')addSection()"/><button type="button" class="add-btn" onclick="addSection()">Add</button></div>
+      </div>
+      <div class="field"><label>Events / tags (pick any)</label>
+        <button type="button" class="dd-btn" onclick="toggleTagPanel()"><span id="tags-summary">None</span><span>▾</span></button>
+        <div class="dd-panel" id="tag-panel" style="display:none;"></div>
+      </div>
       <div class="preview-box" id="log-preview">
         <div class="preview-row"><span style="color:var(--text2)">Gross tips</span><span id="pv-gross">—</span></div>
         <div class="preview-row"><span style="color:var(--text2)">Base pay</span><span id="pv-base">—</span></div>
@@ -336,6 +369,10 @@
       <div class="sum-row"><span style="color:var(--text2)">🅿️ Parking paid</span><span id="sm-parking" style="color:var(--red)">$0.00</span></div>
       <div class="sum-row total"><span>Net take-home</span><span id="sm-net2">$0.00</span></div>
     </div>
+    <div class="card" style="margin-top:14px;">
+      <div class="card-label">🏆 What pays best (all time, $/hr incl. base)</div>
+      <div id="best-body"></div>
+    </div>
   </div>
 
   <!-- GEAR: tax, data, settings -->
@@ -364,8 +401,14 @@
       <div class="card-label">⚙️ Settings</div>
       <div class="field"><label>Google Apps Script URL (Sheets + schedule sync)</label><input type="url" id="set-sheets-url" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off" autocapitalize="off" spellcheck="false"/></div>
       <div class="field"><label>7shifts calendar link (7shifts → Calendar sync)</label><input type="url" id="set-ics-url" placeholder="https://app.7shifts.com/calendar/schedule/....ics" autocomplete="off" autocapitalize="off" spellcheck="false"/></div>
+      <div class="field"><label>Work location for weather (city or zip)</label><input type="text" id="set-location" placeholder="Cincinnati or 45202" autocomplete="off"/></div>
+      <div id="set-loc-status" style="font-size:12px;color:var(--text2);margin:-4px 0 10px;"></div>
+      <div class="field"><label>Sections (one per line)</label><textarea id="set-sections" rows="4"></textarea></div>
+      <div class="field"><label>Events / tags (one per line)</label><textarea id="set-events" rows="8"></textarea></div>
       <button class="modal-close" style="margin-top:4px;font-size:14px;" onclick="saveSheetsUrl()">Save</button>
       <div id="set-status" style="font-size:12px;color:var(--text2);margin-top:10px;">—</div>
+      <button class="modal-close" style="margin-top:12px;font-size:14px;" onclick="backfillWeather()">🌦️ Fill in weather for past shifts</button>
+      <div id="wx-status" style="font-size:12px;color:var(--text2);margin-top:8px;"></div>
     </div>
   </div>
 
@@ -399,6 +442,9 @@
     <div class="modal-row" id="m-parking-row"><span style="color:var(--text2)">🅿️ Parking</span><span id="m-parking" style="color:var(--red)">—</span></div>
     <div class="modal-row" id="m-wage-row"><span style="color:var(--text2)">Base hourly wage</span><span id="m-wage">—</span></div>
     <div class="modal-row" id="m-basepay-row"><span style="color:var(--text2)">Base pay earned</span><span id="m-basepay">—</span></div>
+    <div class="modal-row" id="m-section-row"><span style="color:var(--text2)">Section</span><span id="m-section">—</span></div>
+    <div class="modal-row" id="m-tags-row"><span style="color:var(--text2)">Events / tags</span><span id="m-tags" style="text-align:right;max-width:65%;">—</span></div>
+    <div class="modal-row" id="m-weather-row"><span style="color:var(--text2)">Weather</span><span id="m-weather">—</span></div>
     <div class="modal-row big"><span>Net tips take-home</span><span id="m-net" class="green">—</span></div>
     <div class="modal-row"><span style="color:var(--text2)">Total earned (tips + base)</span><span id="m-total" style="font-weight:600;color:var(--green)">—</span></div>
     <div class="modal-row noborder"><span style="color:var(--text2)">Total per hour</span><span id="m-hr">—</span></div>
@@ -439,6 +485,7 @@ function monthKey(ds){return ds.slice(0,7);}
 function monthLabel(k){const[y,m]=k.split('-');return new Date(+y,+m-1,1).toLocaleDateString('en-US',{month:'short',year:'2-digit'});}
 
 function renderCal(){
+  renderNudge();
   const grid=document.getElementById('cal-grid');grid.innerHTML='';
   if(calView==='week'){renderWeekView();return;}
   ['Mo','Tu','We','Th','Fr','Sa','Su'].forEach(d=>{const el=document.createElement('div');el.className='cal-dow';el.textContent=d;grid.appendChild(el);});
@@ -600,6 +647,12 @@ function openModal(shift){
   document.getElementById('m-pct-row').style.display=shift.sales>0?'flex':'none';
   document.getElementById('m-sales-row').style.display=shift.sales>0?'flex':'none';
   document.getElementById('m-hours').textContent=shift.hours>0?shift.hours+'h':'—';
+  document.getElementById('m-section-row').style.display=shift.section?'flex':'none';
+  document.getElementById('m-section').textContent=shift.section||'—';
+  document.getElementById('m-tags-row').style.display=(shift.tags||[]).length?'flex':'none';
+  document.getElementById('m-tags').textContent=(shift.tags||[]).join(', ')||'—';
+  document.getElementById('m-weather-row').style.display=shift.weather?'flex':'none';
+  document.getElementById('m-weather').textContent=weatherText(shift.weather);
   const autograt=shift.autograt||0;
   document.getElementById('m-autograt-row').style.display=autograt>0?'flex':'none';
   document.getElementById('m-autograt').textContent=autograt>0?fmt2(autograt):'—';
@@ -632,6 +685,7 @@ function editFromModal(){
   editingId=shift.id;
   document.getElementById('s-date').value=shift.date;
   Object.entries(LOG_FIELDS).forEach(([k,id])=>{document.getElementById(id).value=shift[k]?shift[k]:'';});
+  selSection=shift.section||'';selTags=(shift.tags||[]).slice();renderChips();
   setEditMode(true);
   document.getElementById('modal').classList.remove('open');
   switchTab('log');livePreview();
@@ -639,6 +693,7 @@ function editFromModal(){
 function cancelEdit(){
   editingId=null;setEditMode(false);
   Object.values(LOG_FIELDS).forEach(id=>document.getElementById(id).value='');
+  selSection='';selTags=[];renderChips();toggleTagPanel(false);
   document.getElementById('log-preview').style.display='none';
   document.getElementById('s-date').value=now.toISOString().slice(0,10);
 }
@@ -686,15 +741,19 @@ function logShift(){
   const parking=parseFloat(document.getElementById('s-parking').value)||0;
   const autograt=parseFloat(document.getElementById('s-autograt').value)||0;
   // editing: drop the original by id (date may have changed); otherwise same-date entry gets overwritten
+  const orig=editingId!==null?shifts.find(s=>s.id===editingId):shifts.find(s=>s.date===date);
   if(editingId!==null)shifts=shifts.filter(s=>s.id!==editingId);
   const idx=shifts.findIndex(s=>s.date===date);
-  const entry={id:editingId!==null?editingId:Date.now(),date,hours,sales,cash,credit,tipout,wage,parking,autograt};
+  const entry={id:editingId!==null?editingId:Date.now(),date,hours,sales,cash,credit,tipout,wage,parking,autograt,
+    section:selSection,tags:selTags.slice(),weather:orig&&orig.date===date?orig.weather||null:null};
   if(idx>=0)shifts[idx]=entry;else shifts.push(entry);
   editingId=null;setEditMode(false);
   shifts.sort((a,b)=>b.date.localeCompare(a.date));
   saveData();
   syncToSheets(entry);
+  if(!entry.weather)attachWeather(entry.id);
   ['s-hours','s-sales','s-cash','s-credit','s-tipout','s-wage','s-parking','s-autograt'].forEach(id=>document.getElementById(id).value='');
+  selSection='';selTags=[];renderChips();toggleTagPanel(false);
   document.getElementById('log-preview').style.display='none';
   document.getElementById('s-date').value=now.toISOString().slice(0,10);
   calMonth=new Date(date+'T12:00:00').getMonth();calYear=new Date(date+'T12:00:00').getFullYear();
@@ -926,7 +985,7 @@ function switchTab(name){
   document.getElementById('tab-'+name).classList.add('active');
   document.getElementById('gear-btn').classList.toggle('active',name==='settings');
   if(name!=='settings')lastTab=name;
-  if(name==='summary')renderSummary();
+  if(name==='summary'){renderSummary();renderBest();}
   if(name==='settings'){renderNoTax();renderBackupStatus();renderSettings();}
   if(name==='schedule')renderSchedule();
   if(name==='words')renderWords();
@@ -949,6 +1008,11 @@ function renderSettings(){
   const url=getSheetsUrl(),ics=getIcsUrl(),el=document.getElementById('set-status');if(!el)return;
   document.getElementById('set-sheets-url').value=url;
   document.getElementById('set-ics-url').value=ics;
+  const L=getLists(),loc=getLoc();
+  document.getElementById('set-sections').value=L.sections.join('\n');
+  document.getElementById('set-events').value=L.events.join('\n');
+  document.getElementById('set-location').value=loc?loc.query:'';
+  document.getElementById('set-loc-status').textContent=loc?`📍 ${loc.name}`:'Not set — weather is off';
   if(!url){el.textContent='Not set — Sheets and schedule sync are off';el.style.color='var(--amber)';return;}
   el.textContent=ics?'✓ Connected — Sheets sync on, schedule uses your calendar link':'✓ Connected — Sheets sync on, schedule uses the link saved in your Apps Script';
   el.style.color='var(--green)';
@@ -964,6 +1028,10 @@ function saveSheetsUrl(){
     v?localStorage.setItem(SHEETS_KEY,v):localStorage.removeItem(SHEETS_KEY);
     ics?localStorage.setItem(ICS_KEY,ics):localStorage.removeItem(ICS_KEY);
   }catch(e){}
+  const lines=id=>[...new Set(document.getElementById(id).value.split('\n').map(x=>x.trim()).filter(Boolean))];
+  saveLists({sections:lines('set-sections'),events:lines('set-events')});
+  renderChips();
+  saveLocation(document.getElementById('set-location').value.trim()).then(()=>{renderSettings();loadHeaderWx(true);});
   renderSettings();
 }
 
@@ -1037,11 +1105,11 @@ async function syncSchedule() {
     const text = await res.text();
     if (!res.ok || !text.includes('BEGIN:VCALENDAR')) throw new Error('Bad schedule response');
     const events = parseICS(text);
-    const nowTime = new Date();
+    const keepFrom = new Date(todayStart().getTime() - NUDGE_DAYS * 86400000);
     scheduledShifts = events
-      .filter(e => e.start && e.start >= new Date(nowTime.setHours(0,0,0,0)))
+      .filter(e => e.start && e.start >= keepFrom)
       .sort((a,b) => a.start - b.start)
-      .slice(0, 30);
+      .slice(0, 40);
     localStorage.setItem('tiptracker_schedule', JSON.stringify(scheduledShifts.map(s => ({
       title: s.title,
       start: s.start?.toISOString(),
@@ -1049,7 +1117,8 @@ async function syncSchedule() {
     }))));
     renderSchedule();
     renderCal();
-    document.getElementById('sync-status').textContent = `Synced — ${scheduledShifts.length} upcoming shifts`;
+    try { localStorage.setItem(LAST_SYNC_KEY, String(Date.now())); } catch(e) {}
+    document.getElementById('sync-status').textContent = `Synced — ${upcomingShifts().length} upcoming shifts`;
   } catch(e) {
     document.getElementById('sync-status').textContent = 'Sync failed — check connection';
   }
@@ -1065,7 +1134,7 @@ function loadSchedule() {
         start: s.start ? new Date(s.start) : null,
         end: s.end ? new Date(s.end) : null
       }));
-      document.getElementById('sync-status').textContent = `${scheduledShifts.length} shifts loaded — tap Sync to refresh`;
+      document.getElementById('sync-status').textContent = `${upcomingShifts().length} shifts loaded — tap Sync to refresh`;
     }
   } catch(e) { scheduledShifts = []; }
 }
@@ -1080,14 +1149,15 @@ function getScheduledForDate(dateStr) {
 
 function renderSchedule() {
   const el = document.getElementById('schedule-list');
-  if (!scheduledShifts.length) {
+  const list = upcomingShifts();
+  if (!list.length) {
     el.innerHTML = '<div class="empty-state">No upcoming shifts found</div>';
     renderProjection(null);
     return;
   }
   const rates = getHourlyRates();
   renderProjection(rates);
-  el.innerHTML = scheduledShifts.map(s => {
+  el.innerHTML = list.map(s => {
     const dateStr = s.start ? s.start.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'}) : '—';
     const hrs = hoursFromShift(s);
     const alreadyLogged = getShiftForDate(s.start ? s.start.toLocaleDateString('en-CA') : '');
@@ -1126,7 +1196,7 @@ function renderProjection(rates) {
   card.style.display = 'block';
   const today = new Date().toLocaleDateString('en-CA');
   const thisWeek = weekKey(today);
-  const upcoming = scheduledShifts.filter(s => s.start && !getShiftForDate(s.start.toLocaleDateString('en-CA')));
+  const upcoming = upcomingShifts().filter(s => !getShiftForDate(s.start.toLocaleDateString('en-CA')));
   const projWeekList = upcoming.filter(s => weekKey(s.start.toLocaleDateString('en-CA')) === thisWeek);
   const projWeek = projWeekList.reduce((a, s) => a + projectShift(s, rates), 0);
   const earnedWeek = shifts.filter(s => weekKey(s.date) === thisWeek)
@@ -1137,6 +1207,45 @@ function renderProjection(rates) {
   document.getElementById('proj-week-detail').textContent = `${fmt2(earnedWeek)} earned + ~${fmt2(projWeek)} projected (${projWeekList.length} shift${projWeekList.length === 1 ? '' : 's'} left)`;
   document.getElementById('proj-14').textContent = '~' + fmt2(proj14);
   document.getElementById('proj-note').textContent = `Estimate based on your avg $${rates.overall.toFixed(2)}/hr across ${rates.count} logged shift${rates.count === 1 ? '' : 's'}, by weekday where you have 2+ shifts. Not real earnings.`;
+}
+
+// UNLOGGED-SHIFT NUDGE — scheduled shifts that ended in the last week with no tips logged
+const NUDGE_DAYS = 7, DISMISS_KEY = 'tiptracker_nudge_dismissed', LAST_SYNC_KEY = 'tiptracker_last_sync';
+function todayStart() { const d = new Date(); d.setHours(0,0,0,0); return d; }
+function upcomingShifts() { const t = todayStart(); return scheduledShifts.filter(s => s.start && s.start >= t); }
+function getDismissed() { try { return JSON.parse(localStorage.getItem(DISMISS_KEY)) || []; } catch(e) { return []; } }
+function unloggedShifts() {
+  const now = Date.now(), cutoff = todayStart().getTime() - NUDGE_DAYS * 86400000, dismissed = getDismissed();
+  return scheduledShifts.filter(s => {
+    const end = s.end || s.start;
+    if (!end || end.getTime() > now || s.start.getTime() < cutoff) return false;
+    const ds = s.start.toLocaleDateString('en-CA');
+    return !getShiftForDate(ds) && !dismissed.includes(ds);
+  }).sort((a,b) => b.start - a.start);
+}
+function renderNudge() {
+  const el = document.getElementById('nudge'); if (!el) return;
+  const list = unloggedShifts();
+  if (!list.length) { el.style.display = 'none'; el.innerHTML = ''; return; }
+  const rows = list.slice(0, 3).map(s => {
+    const ds = s.start.toLocaleDateString('en-CA');
+    const label = s.start.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'});
+    return `<div class="nudge-row"><span>${label} · ${fmtTime(s.start)}–${fmtTime(s.end)}</span>
+      <span style="display:flex;align-items:center;gap:4px;"><button class="nudge-btn" onclick="prefillShift('${ds}', ${hoursFromShift(s)})">Log</button><button class="nudge-x" aria-label="Dismiss" onclick="dismissNudge('${ds}')">✕</button></span></div>`;
+  }).join('');
+  const more = list.length > 3 ? `<div style="font-size:11px;color:var(--text2);padding-top:4px;">+${list.length - 3} more</div>` : '';
+  el.className = 'nudge'; el.style.display = 'block';
+  el.innerHTML = `<div class="nudge-title">${list.length === 1 ? 'Shift not logged yet' : list.length + ' shifts not logged yet'}</div>${rows}${more}`;
+}
+function dismissNudge(ds) {
+  const d = getDismissed().filter(x => x >= new Date(todayStart().getTime() - 30 * 86400000).toLocaleDateString('en-CA'));
+  d.push(ds); try { localStorage.setItem(DISMISS_KEY, JSON.stringify(d)); } catch(e) {}
+  renderNudge();
+}
+// refresh schedule quietly on open if it's been 6h+ since the last sync
+function autoSync() {
+  let last = 0; try { last = +localStorage.getItem(LAST_SYNC_KEY) || 0; } catch(e) {}
+  if (getSheetsUrl() && Date.now() - last > 6 * 3600000) syncSchedule();
 }
 
 function prefillShift(dateStr, hours) {
@@ -1167,6 +1276,195 @@ function renderNoTax(){
   document.getElementById('nt-saved').textContent=fmt2(deduct*rate);
 }
 
+// SECTIONS / EVENT TAGS — editable lists in ⚙️ Settings
+const LISTS_KEY='tiptracker_lists';
+const DEFAULT_LISTS={
+  sections:['Front','Split','Booth','Patio','Bar'],
+  events:['Concert','Baseball','Reds Opening Day','Bengals home','Bengals away','Super Bowl / playoffs','Hockey','FC Cincinnati',
+    'UC football','UC basketball','March Madness','St. Patrick\'s','Private party','In-house music','Oktoberfest','Riverfest / fireworks',
+    'Taste of Cincy','BLINK','NYE','Halloween','July 4th','Thanksgiving Eve','Valentine\'s','Mother\'s Day',
+    'Short-staffed','Cut early','Stayed late','Double','Training']
+};
+let selSection='', selTags=[];
+function getLists(){
+  try{const L=JSON.parse(localStorage.getItem(LISTS_KEY));if(L&&Array.isArray(L.sections)&&Array.isArray(L.events))return L;}catch(e){}
+  return {sections:DEFAULT_LISTS.sections.slice(),events:DEFAULT_LISTS.events.slice()};
+}
+function saveLists(L){
+  const clean=a=>Array.isArray(a)?a.filter(x=>typeof x==='string'&&x.trim()).map(x=>x.trim()):[];
+  try{localStorage.setItem(LISTS_KEY,JSON.stringify({sections:clean(L.sections),events:clean(L.events)}));}catch(e){}
+}
+function esc(t){return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+// most-logged first; ties (and never-used) keep the Settings order
+function byUsage(list,countOf){
+  const n=new Map();shifts.forEach(s=>countOf(s).forEach(k=>n.set(k,(n.get(k)||0)+1)));
+  return list.map((k,i)=>({k,i,c:n.get(k)||0})).sort((a,b)=>b.c-a.c||a.i-b.i);
+}
+function renderChips(){
+  const L=getLists();
+  // keep values on old shifts visible while editing even if removed from the list
+  const secs=selSection&&!L.sections.includes(selSection)?[...L.sections,selSection]:L.sections;
+  const evs=[...L.events,...selTags.filter(t=>!L.events.includes(t))];
+  const so=byUsage(secs,s=>s.section?[s.section]:[]), eo=byUsage(evs,s=>s.tags||[]);
+  const sel=document.getElementById('sel-section');
+  sel.innerHTML='<option value="">— None —</option>'+so.map(o=>`<option value="${esc(o.k)}">${esc(o.k)}${o.c?` (${o.c})`:''}</option>`).join('')
+    +'<option value="__add__">+ Add new section…</option>';
+  sel.value=selSection;
+  document.getElementById('tag-panel').innerHTML=eo.map((o,i)=>`<label class="dd-row"><input type="checkbox" ${selTags.includes(o.k)?'checked':''} onchange="toggleTag(${i},this.checked)"/>${esc(o.k)}${o.c?`<span class="dd-count">${o.c}</span>`:''}</label>`).join('')
+    +'<div class="add-row" style="padding:8px 12px;margin:0;"><input type="text" id="add-tag" placeholder="Add a new event / tag" onkeydown="if(event.key===\'Enter\')addTag()"/><button type="button" class="add-btn" onclick="addTag()">Add</button></div>'
+    +'<button type="button" class="dd-done" onclick="toggleTagPanel(false)">Done</button>';
+  renderChips._evs=eo.map(o=>o.k);
+  updateTagSummary();
+}
+function onSectionPick(sel){
+  const row=document.getElementById('add-section-row');
+  if(sel.value==='__add__'){sel.value=selSection;row.style.display='flex';document.getElementById('add-section').focus();return;}
+  selSection=sel.value;row.style.display='none';
+}
+// add to the saved list (case-insensitive dedupe) and return the stored spelling
+function addToList(kind,name){
+  name=name.trim().replace(/\s+/g,' ');if(!name)return '';
+  const L=getLists(),hit=L[kind].find(x=>x.toLowerCase()===name.toLowerCase());
+  if(hit)return hit;
+  L[kind].push(name);saveLists(L);return name;
+}
+function addSection(){
+  const inp=document.getElementById('add-section'),name=addToList('sections',inp.value);if(!name)return;
+  selSection=name;inp.value='';document.getElementById('add-section-row').style.display='none';renderChips();
+}
+function addTag(){
+  const inp=document.getElementById('add-tag'),name=addToList('events',inp.value);if(!name)return;
+  if(!selTags.includes(name))selTags=[...selTags,name];
+  renderChips();toggleTagPanel(true);
+}
+function updateTagSummary(){document.getElementById('tags-summary').textContent=selTags.length?selTags.join(', '):'None';}
+function toggleTag(i,on){const x=renderChips._evs[i];selTags=on?[...new Set([...selTags,x])]:selTags.filter(t=>t!==x);updateTagSummary();}
+function toggleTagPanel(force){
+  const p=document.getElementById('tag-panel');
+  const open=force===undefined?p.style.display==='none':force;
+  p.style.display=open?'block':'none';
+}
+
+// WEATHER — Open-Meteo (free, no API key). Stored on each shift at log time.
+const LOC_KEY='tiptracker_location';
+function getLoc(){try{const l=JSON.parse(localStorage.getItem(LOC_KEY));return l&&typeof l.lat==='number'?l:null;}catch(e){return null;}}
+async function saveLocation(q){
+  const cur=getLoc();
+  if(!q){try{localStorage.removeItem(LOC_KEY);}catch(e){}return;}
+  if(cur&&cur.query===q)return;
+  const el=document.getElementById('set-loc-status');el.textContent='Looking up location…';
+  try{
+    const r=await fetch('https://geocoding-api.open-meteo.com/v1/search?count=1&countryCode=US&name='+encodeURIComponent(q));
+    const g=((await r.json()).results||[])[0];
+    if(!g){el.textContent='Couldn’t find that location';el.style.color='var(--red)';return;}
+    localStorage.setItem(LOC_KEY,JSON.stringify({query:q,name:[g.name,g.admin1].filter(Boolean).join(', '),lat:g.latitude,lon:g.longitude}));
+    el.style.color='';
+  }catch(e){el.textContent='Location lookup failed — check connection';el.style.color='var(--red)';}
+}
+const WX={clear:'☀️ Clear',cloudy:'☁️ Cloudy',fog:'🌫️ Fog',rain:'🌧️ Rain',snow:'❄️ Snow',storm:'⛈️ Storm'};
+function wxCat(code){
+  if(code>=95)return 'storm';
+  if((code>=71&&code<=77)||code===85||code===86)return 'snow';
+  if((code>=51&&code<=67)||(code>=80&&code<=82))return 'rain';
+  if(code===45||code===48)return 'fog';
+  if(code>=1&&code<=3)return 'cloudy';
+  return 'clear';
+}
+const WX_RANK={clear:0,cloudy:1,fog:2,rain:3,snow:4,storm:5};
+function weatherText(w){return w?`${WX[w.cat]||w.label} · ${w.temp}°F${w.precip>0?` · ${w.precip}" precip`:''}`:'—';}
+// shift window from the 7shifts schedule if we have it, else 6–10 PM
+function shiftWindow(date){
+  const sc=scheduledShifts.find(x=>x.start&&x.start.toLocaleDateString('en-CA')===date);
+  if(sc&&sc.end)return [sc.start.getHours(),Math.max(sc.start.getHours()+1,Math.ceil(sc.end.getHours()+sc.end.getMinutes()/60))];
+  return [18,22];
+}
+async function fetchWeather(date){
+  const loc=getLoc();if(!loc)return null;
+  const daysAgo=(todayStart()-new Date(date+'T00:00:00'))/86400000;
+  const base=daysAgo>60?'https://archive-api.open-meteo.com/v1/archive':'https://api.open-meteo.com/v1/forecast';
+  const url=`${base}?latitude=${loc.lat}&longitude=${loc.lon}&hourly=temperature_2m,precipitation,weather_code&temperature_unit=fahrenheit&precipitation_unit=inch&timezone=auto&start_date=${date}&end_date=${date}`;
+  const h=(await (await fetch(url)).json()).hourly;
+  if(!h||!h.time)return null;
+  const [a,b]=shiftWindow(date);
+  const idx=h.time.map((t,i)=>[+t.slice(11,13),i]).filter(([hr])=>hr>=a&&hr<Math.min(b,24)).map(([,i])=>i);
+  const temps=idx.map(i=>h.temperature_2m[i]).filter(v=>v!=null);
+  if(!temps.length)return null;
+  const precip=Math.round(idx.reduce((s,i)=>s+(h.precipitation[i]||0),0)*100)/100;
+  let cat='clear';idx.forEach(i=>{const c=wxCat(h.weather_code[i]);if(WX_RANK[c]>WX_RANK[cat])cat=c;});
+  if(precip>=0.02&&WX_RANK[cat]<WX_RANK.rain)cat='rain';
+  return {temp:Math.round(temps[0]),precip,cat,label:WX[cat].slice(WX[cat].indexOf(' ')+1)};
+}
+async function attachWeather(id){
+  const s=shifts.find(x=>x.id===id);if(!s||!getLoc())return false;
+  try{
+    const w=await fetchWeather(s.date);if(!w)return false;
+    const cur=shifts.find(x=>x.id===id);if(!cur)return false;
+    cur.weather=w;saveData();renderCal();return true;
+  }catch(e){return false;}
+}
+async function backfillWeather(){
+  const el=document.getElementById('wx-status');
+  if(!getLoc()){el.textContent='Set your work location first, then tap Save.';el.style.color='var(--red)';return;}
+  const todo=shifts.filter(s=>!s.weather&&s.date<=new Date().toLocaleDateString('en-CA'));
+  if(!todo.length){el.textContent='All shifts already have weather.';el.style.color='';return;}
+  let ok=0;el.style.color='';
+  for(let i=0;i<todo.length;i++){
+    el.textContent=`Fetching weather ${i+1} of ${todo.length}…`;
+    if(await attachWeather(todo[i].id))ok++;
+    await new Promise(r=>setTimeout(r,250));
+  }
+  el.textContent=`Done — added weather to ${ok} of ${todo.length} shifts.`;
+}
+
+// HEADER WEATHER — current conditions at work location, cached 30 min
+const HWX_KEY='tiptracker_header_wx', HWX_TTL=30*60000;
+function showHeaderWx(w){
+  const el=document.getElementById('header-wx');if(!el)return;
+  if(!w||!getLoc()){el.textContent='';return;}
+  const icon=w.cat==='clear'&&!w.day?'🌙':WX[w.cat].split(' ')[0];
+  el.textContent=`${icon} ${w.temp}°F`;el.title=`${WX[w.cat].split(' ').slice(1).join(' ')} in ${getLoc().name}`;
+}
+async function loadHeaderWx(force){
+  const loc=getLoc();if(!loc){showHeaderWx(null);return;}
+  let c=null;try{c=JSON.parse(localStorage.getItem(HWX_KEY));}catch(e){}
+  const fresh=c&&c.lat===loc.lat&&c.lon===loc.lon&&Date.now()-c.at<HWX_TTL;
+  if(c&&c.lat===loc.lat&&c.lon===loc.lon)showHeaderWx(c);
+  if(fresh&&!force)return;
+  try{
+    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}&current=temperature_2m,weather_code,is_day&temperature_unit=fahrenheit&timezone=auto`);
+    const cur=(await r.json()).current;if(!cur)return;
+    const w={temp:Math.round(cur.temperature_2m),cat:wxCat(cur.weather_code),day:cur.is_day===1,at:Date.now(),lat:loc.lat,lon:loc.lon};
+    try{localStorage.setItem(HWX_KEY,JSON.stringify(w));}catch(e){}
+    showHeaderWx(w);
+  }catch(e){}
+}
+setInterval(()=>loadHeaderWx(),HWX_TTL);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')loadHeaderWx();});
+
+// WHAT PAYS BEST — $/hr (net tips + base) grouped by section, event and weather
+function renderBest(){
+  const el=document.getElementById('best-body');if(!el)return;
+  const data=shifts.filter(s=>s.hours>0);
+  if(!data.length){el.innerHTML='<div style="font-size:12px;color:var(--text2);">Log shifts with hours to see this.</div>';return;}
+  const pay=s=>netOf(s)+(s.wage>0?s.wage*s.hours:0);
+  const overall=data.reduce((a,s)=>a+pay(s),0)/data.reduce((a,s)=>a+s.hours,0);
+  const group=keyFn=>{
+    const m=new Map();
+    data.forEach(s=>keyFn(s).forEach(k=>{const g=m.get(k)||{pay:0,hrs:0,n:0};g.pay+=pay(s);g.hrs+=s.hours;g.n++;m.set(k,g);}));
+    return [...m].map(([k,g])=>({k,n:g.n,rate:g.pay/g.hrs})).sort((a,b)=>b.rate-a.rate);
+  };
+  const block=(title,rows)=>rows.length?`<div class="best-h">${title}</div>`+rows.map(r=>{
+    const diff=r.rate-overall,col=diff>=0?'var(--green)':'var(--red)';
+    return `<div class="sum-row"${r.n<3?' style="opacity:.6"':''}><span style="color:var(--text2)">${esc(r.k)} · ${r.n} shift${r.n===1?'':'s'}</span><span>$${r.rate.toFixed(2)} <span style="font-size:11px;color:${col}">${diff>=0?'+':''}${diff.toFixed(2)}</span></span></div>`;
+  }).join(''):'';
+  const html=block('By section',group(s=>s.section?[s.section]:[]))
+    +block('By event / tag',group(s=>s.tags||[]))
+    +block('By weather',group(s=>s.weather?[WX[s.weather.cat]||s.weather.label]:[]));
+  el.innerHTML=`<div class="sum-row"><span style="color:var(--text2)">Your average</span><span style="font-weight:600">$${overall.toFixed(2)}/hr</span></div>`
+    +(html||'<div style="font-size:12px;color:var(--text2);margin-top:8px;">Tag sections/events when you log, and set a location in ⚙️ for weather.</div>')
+    +'<div style="font-size:11px;color:var(--text2);margin-top:8px;">Faded rows = under 3 shifts, not reliable yet.</div>';
+}
+
 // BACKUP / EXPORT
 const BACKUP_KEY='tiptracker_last_backup';
 const NUM_FIELDS=['hours','sales','cash','credit','tipout','wage','parking','autograt'];
@@ -1185,16 +1483,16 @@ function renderBackupStatus(){
   el.style.color=days>14?'var(--amber)':'var(--text2)';
 }
 function exportBackup(){
-  downloadFile(`tiptracker-backup-${todayStr()}.json`,JSON.stringify({app:'tiptracker',version:2,exported:new Date().toISOString(),sheetsUrl:getSheetsUrl(),icsUrl:getIcsUrl(),shifts},null,2),'application/json');
+  downloadFile(`tiptracker-backup-${todayStr()}.json`,JSON.stringify({app:'tiptracker',version:2,exported:new Date().toISOString(),sheetsUrl:getSheetsUrl(),icsUrl:getIcsUrl(),lists:getLists(),location:getLoc(),shifts},null,2),'application/json');
   try{localStorage.setItem(BACKUP_KEY,new Date().toISOString());}catch(e){}
   renderBackupStatus();
 }
 function exportCSV(){
-  const head=['date','hours','sales','cash_tips','credit_tips','gross_tips','tipout','net_tips','wage','base_pay','total_earned','parking','autograt','qualified_tips'];
+  const head=['date','hours','sales','cash_tips','credit_tips','gross_tips','tipout','net_tips','wage','base_pay','total_earned','parking','autograt','qualified_tips','section','tags','weather','temp_f','precip_in'];
   const rows=[...shifts].sort((a,b)=>a.date.localeCompare(b.date)).map(s=>{
     const gross=s.cash+s.credit,net=netOf(s),base=s.hours>0&&s.wage>0?s.wage*s.hours:0;
-    return [s.date,s.hours,s.sales,s.cash,s.credit,gross,s.tipout,net,s.wage||0,base,net+base,s.parking||0,s.autograt||0,qualifiedOf(s)]
-      .map(v=>typeof v==='number'?(Math.round(v*100)/100):v).join(',');
+    return [s.date,s.hours,s.sales,s.cash,s.credit,gross,s.tipout,net,s.wage||0,base,net+base,s.parking||0,s.autograt||0,qualifiedOf(s),s.section||'',(s.tags||[]).join('; '),s.weather?s.weather.label:'',s.weather?s.weather.temp:'',s.weather?s.weather.precip:'']
+      .map(v=>typeof v==='number'?(Math.round(v*100)/100):'"'+String(v).replace(/"/g,'""')+'"').join(',');
   });
   downloadFile(`tiptracker-${todayStr()}.csv`,[head.join(','),...rows].join('\n'),'text/csv');
 }
@@ -1207,9 +1505,19 @@ function importBackup(input){
     if(!Array.isArray(incoming)){alert("That file isn't a valid backup.");return;}
     const clean=incoming.filter(s=>s&&/^\d{4}-\d{2}-\d{2}$/.test(s.date)).map(s=>{
       const o={id:Number(s.id)||Date.now()+Math.random(),date:s.date};
-      NUM_FIELDS.forEach(k=>{o[k]=parseFloat(s[k])||0;});return o;
+      NUM_FIELDS.forEach(k=>{o[k]=parseFloat(s[k])||0;});
+      o.section=typeof s.section==='string'?s.section:'';
+      o.tags=Array.isArray(s.tags)?s.tags.filter(t=>typeof t==='string'):[];
+      o.weather=s.weather&&typeof s.weather==='object'&&typeof s.weather.label==='string'?s.weather:null;
+      return o;
     });
     if(!clean.length){alert('No shifts found in that file.');return;}
+    try{
+      const d=JSON.parse(reader.result);
+      if(d&&d.lists&&!localStorage.getItem(LISTS_KEY))saveLists(d.lists);
+      if(d&&d.location&&typeof d.location.lat==='number'&&!getLoc())localStorage.setItem(LOC_KEY,JSON.stringify(d.location));
+      renderChips();
+    }catch(e){}
     const byDate=new Map(shifts.map(s=>[s.date,s]));
     const overwritten=clean.filter(s=>byDate.has(s.date)).length;
     if(!confirm(`Restore ${clean.length} shifts? ${overwritten} existing day(s) will be replaced by the backup version. Nothing else is deleted.`))return;
@@ -1227,6 +1535,9 @@ if('serviceWorker' in navigator){
 
 loadSchedule();
 loadData();
+renderChips();
+loadHeaderWx();
+autoSync();
 </script>
 </body>
 </html>
