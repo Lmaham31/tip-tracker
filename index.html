@@ -40,6 +40,8 @@
   /* HEADER */
   .header{background:#111111;color:#fff;padding:calc(var(--safe-top) + 14px) 16px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
   .header-title{font-size:17px;font-weight:600;letter-spacing:0.01em;}
+  .gear-btn{background:transparent;border:none;font-size:20px;line-height:1;padding:2px;cursor:pointer;opacity:.75;-webkit-tap-highlight-color:transparent;}
+  .gear-btn.active{opacity:1;transform:rotate(45deg);transition:transform .2s;}
   .header-dot{width:8px;height:8px;border-radius:50%;background:#4CAF50;}
 
   /* TAB BAR */
@@ -192,7 +194,10 @@
 
 <div class="header">
   <div class="header-title">Tip Tracker</div>
-  <div class="header-dot"></div>
+  <div style="display:flex;align-items:center;gap:14px;">
+    <div class="header-dot"></div>
+    <button class="gear-btn" id="gear-btn" onclick="toggleSettings()" aria-label="Settings">⚙️</button>
+  </div>
 </div>
 
 <div class="tab-bar">
@@ -331,7 +336,11 @@
       <div class="sum-row"><span style="color:var(--text2)">🅿️ Parking paid</span><span id="sm-parking" style="color:var(--red)">$0.00</span></div>
       <div class="sum-row total"><span>Net take-home</span><span id="sm-net2">$0.00</span></div>
     </div>
-    <div class="card" style="margin-top:14px;">
+  </div>
+
+  <!-- GEAR: tax, data, settings -->
+  <div class="section" id="tab-settings">
+    <div class="card">
       <div class="card-label" id="nt-label">🧾 No Tax on Tips</div>
       <div class="sum-row"><span style="color:var(--text2)">Qualified tips this year</span><span id="nt-qual" style="font-weight:600">$0.00</span></div>
       <div style="height:8px;border-radius:4px;background:var(--border);overflow:hidden;margin:6px 0 4px;"><div id="nt-bar" style="height:100%;width:0%;background:var(--green);"></div></div>
@@ -354,6 +363,7 @@
     <div class="card" style="margin-top:14px;">
       <div class="card-label">⚙️ Settings</div>
       <div class="field"><label>Google Apps Script URL (Sheets + schedule sync)</label><input type="url" id="set-sheets-url" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off" autocapitalize="off" spellcheck="false"/></div>
+      <div class="field"><label>7shifts calendar link (7shifts → Calendar sync)</label><input type="url" id="set-ics-url" placeholder="https://app.7shifts.com/calendar/schedule/....ics" autocomplete="off" autocapitalize="off" spellcheck="false"/></div>
       <button class="modal-close" style="margin-top:4px;font-size:14px;" onclick="saveSheetsUrl()">Save</button>
       <div id="set-status" style="font-size:12px;color:var(--text2);margin-top:10px;">—</div>
     </div>
@@ -907,11 +917,17 @@ function renderWords(){
     </div>`).join('');
 }
 
+let lastTab='cal';
+// gear opens the tax/data/settings page; tapping it again goes back to the previous tab
+function toggleSettings(){switchTab(document.getElementById('tab-settings').classList.contains('active')?lastTab:'settings');}
 function switchTab(name){
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['cal','log','schedule','summary','words'][i]===name));
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
-  if(name==='summary'){renderSummary();renderBackupStatus();renderNoTax();renderSettings();}
+  document.getElementById('gear-btn').classList.toggle('active',name==='settings');
+  if(name!=='settings')lastTab=name;
+  if(name==='summary')renderSummary();
+  if(name==='settings'){renderNoTax();renderBackupStatus();renderSettings();}
   if(name==='schedule')renderSchedule();
   if(name==='words')renderWords();
 }
@@ -920,16 +936,34 @@ function switchTab(name){
 const SHEETS_KEY='tiptracker_sheets_url';
 const SHEETS_RE=/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/;
 function getSheetsUrl(){try{return localStorage.getItem(SHEETS_KEY)||'';}catch(e){return '';}}
+// 7shifts calendar link also lives only on this device; the Apps Script fetches it server-side
+const ICS_KEY='tiptracker_ics_url';
+function getIcsUrl(){try{return localStorage.getItem(ICS_KEY)||'';}catch(e){return '';}}
+// webcal:// -> https://, and /calendar/ -> /page/calendar/ (the plain form is blocked by 7shifts' Cloudflare for servers)
+function normalizeIcs(u){
+  u=u.trim().replace(/^webcal:\/\//i,'https://');
+  const m=u.match(/^https:\/\/app\.7shifts\.com\/(?:page\/)?(calendar\/\S+)$/i);
+  return m?'https://app.7shifts.com/page/'+m[1]:null;
+}
 function renderSettings(){
-  const url=getSheetsUrl(),el=document.getElementById('set-status');if(!el)return;
+  const url=getSheetsUrl(),ics=getIcsUrl(),el=document.getElementById('set-status');if(!el)return;
   document.getElementById('set-sheets-url').value=url;
-  el.textContent=url?'✓ Connected — shifts sync to Sheets, schedule sync enabled':'Not set — Sheets and schedule sync are off';
-  el.style.color=url?'var(--green)':'var(--amber)';
+  document.getElementById('set-ics-url').value=ics;
+  if(!url){el.textContent='Not set — Sheets and schedule sync are off';el.style.color='var(--amber)';return;}
+  el.textContent=ics?'✓ Connected — Sheets sync on, schedule uses your calendar link':'✓ Connected — Sheets sync on, schedule uses the link saved in your Apps Script';
+  el.style.color='var(--green)';
 }
 function saveSheetsUrl(){
+  const el=document.getElementById('set-status');
   const v=document.getElementById('set-sheets-url').value.trim();
-  if(v&&!SHEETS_RE.test(v)){const el=document.getElementById('set-status');el.textContent='That doesn’t look like an Apps Script /exec URL';el.style.color='var(--red)';return;}
-  try{v?localStorage.setItem(SHEETS_KEY,v):localStorage.removeItem(SHEETS_KEY);}catch(e){}
+  const rawIcs=document.getElementById('set-ics-url').value.trim();
+  if(v&&!SHEETS_RE.test(v)){el.textContent='That doesn’t look like an Apps Script /exec URL';el.style.color='var(--red)';return;}
+  const ics=rawIcs?normalizeIcs(rawIcs):'';
+  if(ics===null){el.textContent='That doesn’t look like a 7shifts calendar link';el.style.color='var(--red)';return;}
+  try{
+    v?localStorage.setItem(SHEETS_KEY,v):localStorage.removeItem(SHEETS_KEY);
+    ics?localStorage.setItem(ICS_KEY,ics):localStorage.removeItem(ICS_KEY);
+  }catch(e){}
   renderSettings();
 }
 
@@ -998,7 +1032,8 @@ async function syncSchedule() {
   try {
     const url = getSheetsUrl();
     if (!url) { document.getElementById('sync-status').textContent = 'Add your Apps Script URL in Summary → Settings'; return; }
-    const res = await fetch(url + '?action=schedule');
+    const ics = getIcsUrl();
+    const res = await fetch(url + '?action=schedule' + (ics ? '&ics=' + encodeURIComponent(ics) : ''));
     const text = await res.text();
     if (!res.ok || !text.includes('BEGIN:VCALENDAR')) throw new Error('Bad schedule response');
     const events = parseICS(text);
@@ -1150,7 +1185,7 @@ function renderBackupStatus(){
   el.style.color=days>14?'var(--amber)':'var(--text2)';
 }
 function exportBackup(){
-  downloadFile(`tiptracker-backup-${todayStr()}.json`,JSON.stringify({app:'tiptracker',version:2,exported:new Date().toISOString(),sheetsUrl:getSheetsUrl(),shifts},null,2),'application/json');
+  downloadFile(`tiptracker-backup-${todayStr()}.json`,JSON.stringify({app:'tiptracker',version:2,exported:new Date().toISOString(),sheetsUrl:getSheetsUrl(),icsUrl:getIcsUrl(),shifts},null,2),'application/json');
   try{localStorage.setItem(BACKUP_KEY,new Date().toISOString());}catch(e){}
   renderBackupStatus();
 }
@@ -1168,7 +1203,7 @@ function importBackup(input){
   const reader=new FileReader();
   reader.onload=()=>{
     let incoming;
-    try{const d=JSON.parse(reader.result);incoming=Array.isArray(d)?d:d.shifts;if(d&&typeof d.sheetsUrl==='string'&&SHEETS_RE.test(d.sheetsUrl)&&!getSheetsUrl()){try{localStorage.setItem(SHEETS_KEY,d.sheetsUrl);}catch(e){}renderSettings();}}catch(e){alert("That file isn't a valid backup.");return;}
+    try{const d=JSON.parse(reader.result);incoming=Array.isArray(d)?d:d.shifts;if(d&&typeof d.sheetsUrl==='string'&&SHEETS_RE.test(d.sheetsUrl)&&!getSheetsUrl()){try{localStorage.setItem(SHEETS_KEY,d.sheetsUrl);}catch(e){}renderSettings();}if(d&&typeof d.icsUrl==='string'&&normalizeIcs(d.icsUrl)&&!getIcsUrl()){try{localStorage.setItem(ICS_KEY,normalizeIcs(d.icsUrl));}catch(e){}renderSettings();}}catch(e){alert("That file isn't a valid backup.");return;}
     if(!Array.isArray(incoming)){alert("That file isn't a valid backup.");return;}
     const clean=incoming.filter(s=>s&&/^\d{4}-\d{2}-\d{2}$/.test(s.date)).map(s=>{
       const o={id:Number(s.id)||Date.now()+Math.random(),date:s.date};
